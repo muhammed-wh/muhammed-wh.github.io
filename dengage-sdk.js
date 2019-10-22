@@ -14,7 +14,7 @@
     projectId: "webpush-deneme",
     //storageBucket: "webpush-deneme.appspot.com",
     messagingSenderId: "992812112924",
-    appId: "1:992812112924:web:4cc16aaa4afdefb94c13d9"
+    //appId: "1:992812112924:web:4cc16aaa4afdefb94c13d9"
   };
   
   var fb = firebase.initializeApp(firebaseConfig);
