@@ -8,13 +8,13 @@
   }
   
   var firebaseConfig = {
-    //apiKey: "AIzaSyDbzYdx1P-_2QBUZbt8d9Zexb6Fk8fugZ8",
+    apiKey: "AIzaSyDbzYdx1P-_2QBUZbt8d9Zexb6Fk8fugZ8",
     authDomain: "webpush-deneme.firebaseapp.com",
     databaseURL: "https://webpush-deneme.firebaseio.com",
     projectId: "webpush-deneme",
     storageBucket: "webpush-deneme.appspot.com",
     messagingSenderId: "992812112924",
-    appId: "1:992812112924:web:4cc16aaa4afdefb94c13d9"
+    //appId: "1:992812112924:web:4cc16aaa4afdefb94c13d9"
   };
   
   var fb = firebase.initializeApp(firebaseConfig);
