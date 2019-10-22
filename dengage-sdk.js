@@ -41,7 +41,7 @@
 
   function sendSubscription(token) {
     var data = {
-      "appAlias": "muhammed-wh.github.io/",
+      "appAlias": "muhammed-wh.github.io",
       "token": token,
       "contactKey": "",
       "permission": true,
