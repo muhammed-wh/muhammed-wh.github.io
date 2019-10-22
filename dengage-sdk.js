@@ -8,7 +8,7 @@
   }
   
   var firebaseConfig = {
-    //apiKey: "AIzaSyDbzYdx1P-_2QBUZbt8d9Zexb6Fk8fugZ8",
+    apiKey: "AIzaSyDbzYdx1P-_2QBUZbt8d9Zexb6Fk8fugZ8",
     messagingSenderId: "992812112924",
   };
   
