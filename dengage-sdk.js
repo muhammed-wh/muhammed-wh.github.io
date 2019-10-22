@@ -9,7 +9,7 @@
   
   var firebaseConfig = {
     apiKey: "AIzaSyDbzYdx1P-_2QBUZbt8d9Zexb6Fk8fugZ8",
-    authDomain: "webpush-deneme.firebaseapp.com",
+    //authDomain: "webpush-deneme.firebaseapp.com",
     //databaseURL: "https://webpush-deneme.firebaseio.com",
     projectId: "webpush-deneme",
     //storageBucket: "webpush-deneme.appspot.com",
