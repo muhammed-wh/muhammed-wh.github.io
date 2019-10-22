@@ -17,9 +17,9 @@
     appId: "1:992812112924:web:4cc16aaa4afdefb94c13d9"
   };
   
-  firebase.initializeApp(firebaseConfig);
+  var fb = firebase.initializeApp(firebaseConfig);
   
-  const messaging = firebase.messaging();
+  const messaging = fb.messaging();
   
   navigator.serviceWorker
       .register('/dengage-webpush-sw.js')
