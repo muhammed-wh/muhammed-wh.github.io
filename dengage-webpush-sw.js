@@ -1,13 +1,13 @@
 importScripts("https://www.gstatic.com/firebasejs/7.2.1/firebase-app.js");
 importScripts("https://www.gstatic.com/firebasejs/7.2.1/firebase-messaging.js");
 
-firebase.initializeApp({
+var fb = firebase.initializeApp({
   messagingSenderId: "992812112924"
 });
 
-const messaging = firebase.messaging();
+const messaging = fb.messaging();
 
-messaging.setBackgroundMessageHandler(function(payload) {
+/*messaging.setBackgroundMessageHandler(function(payload) {
   console.log(
     "[firebase-messaging-sw.js] Received background message ",
     payload
@@ -24,4 +24,4 @@ messaging.setBackgroundMessageHandler(function(payload) {
     notificationTitle,
     notificationOptions
   );
-});
+});*/
