@@ -45,7 +45,7 @@
       "token": token,
       "contactKey": "",
       "permission": true,
-      "udid": "123456789123456789123456789123456789",
+      "udid": "b2b28f40-4e78-4ce3-b905-06261701b616",
       "carrierId": "",
       "appVersion": "",
       "sdkVersion": "0.1"
