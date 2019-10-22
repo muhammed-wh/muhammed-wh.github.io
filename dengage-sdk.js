@@ -11,7 +11,7 @@
     apiKey: "AIzaSyDbzYdx1P-_2QBUZbt8d9Zexb6Fk8fugZ8",
     //authDomain: "webpush-deneme.firebaseapp.com",
     //databaseURL: "https://webpush-deneme.firebaseio.com",
-    //projectId: "webpush-deneme",
+    projectId: "webpush-deneme",
     //storageBucket: "webpush-deneme.appspot.com",
     messagingSenderId: "992812112924",
     appId: "1:992812112924:web:4cc16aaa4afdefb94c13d9"
@@ -62,8 +62,7 @@
       cache: 'no-cache', // *default, no-cache, reload, force-cache, only-if-cached
       credentials: 'omit', // include, *same-origin, omit
       headers: {
-        'Content-Type': 'application/json'
-        // 'Content-Type': 'application/x-www-form-urlencoded',
+        'Content-Type': 'text/plain'
       },
       redirect: 'follow', // manual, *follow, error
       referrer: 'no-referrer', // no-referrer, *client
