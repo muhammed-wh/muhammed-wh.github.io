@@ -26,4 +26,3 @@
   });
 
 }(firebase));
-//# sourceMappingURL=dengage-webpush-sw.js.map
