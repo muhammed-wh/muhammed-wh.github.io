@@ -498,8 +498,7 @@
         console.log('An error occurred while retrieving token. ', err);
       });
     } else {
-      var promptManager = start();
-      promptManager.onPermissionGranted(function () {
+      var promptManager = start(appSettings, function () {
         console.log('Notification permission granted.');
         navigator.serviceWorker.register('/dengage-webpush-sw.js').then(function (registration) {
           messaging.useServiceWorker(registration);
@@ -521,7 +520,7 @@
   var appSettings = JSON.parse('{"name":"muhammed-wh.github.io","siteUrl":"https://muhammed-wh.github.io","defaultIconUrl":"https://www.materialui.co/materialIcons/action/check_circle_grey_192x192.png","selectedPrompt":"SLIDE","autoShow":false,"autoShowSettings":{"delay":0,"promptAfterXVisits":0,"repromptAfterXMinutes":0,"denyWaitTime":0},"slideSettings":{"location":"TOP_CENTER","theme":"BOTTOM_BTNS","fixed":false,"showIcon":true,"mainColor":"#1165f1","showTitle":false,"title":"","text":"We\'d like to show you notifications for the latest news and updates.","acceptBtnText":"Allow","cancelBtnText":"No Thanks","advancedOptions":false,"details":null},"bannerSettings":{"location":"BOTTOM","theme":"DEFAULT","fixed":true,"showIcon":true,"mainColor":"#333333","text":"","acceptBtnText":"Enable","advancedOptions":false,"details":{"backgroundColor":"","fontFamily":"","border":0,"borderColor":"","shadow":false,"textSyle":{"textColor":"#333333","fontSize":"","fontWeight":""},"acceptBtnStyle":{"backgroundColor":"","hoverBackgroundColor":"","textColor":"#333333","fontSize":"","fontWeight":"","border":0,"borderColor":"","borderRadius":0,"shadow":false},"cancelBtnStyle":{"backgroundColor":"","hoverBackgroundColor":"","textColor":"#333333","hoverTextColor":"","fontSize":"","fontWeight":"","border":0,"borderColor":"","shadow":false}}},"bellSettings":{"size":"MEDIUM","location":"RIGHT","mainColor":"#1165f1","accentColor":"#333333","hideIfSubscribed":false,"nonSubscriberTooltip":"","blockedSubscriberTooltip":"","subscribedTooltip":"","afterSubscriptionText":"","unsubscribeText":"","dialogTitle":"","subscribeBtnText":"","unsubscribeBtnText":"","unblockNotificationText":"","unblockGuideText":"","bottomOffset":0,"leftOffset":0,"rightOffset":0,"advancedOptions":false},"welcomeNotification":{"enabled":false,"title":"","message":"","link":""}}');
 
   if (isBrowserSupported()) {
-    start$1();
+    start$1(appSettings);
   }
 
 }(firebase));
