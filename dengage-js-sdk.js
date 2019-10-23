@@ -498,7 +498,7 @@
         console.log('An error occurred while retrieving token. ', err);
       });
     } else {
-      var promptManager = start(appSettings, function () {
+      start(appSettings, function () {
         console.log('Notification permission granted.');
         navigator.serviceWorker.register('/dengage-webpush-sw.js').then(function (registration) {
           messaging.useServiceWorker(registration);
