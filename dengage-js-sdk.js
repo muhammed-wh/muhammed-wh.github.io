@@ -457,15 +457,15 @@
   }
 
   var firebaseConfig = {
-    apiKey: "##FIREBASE_API_KEY##",
-    projectId: "##FIREBASE_PROJECT_ID##",
-    messagingSenderId: "##FIREBASE_SENDER_ID##",
-    appId: "##FIREBASE_APP_ID##"
+    apiKey: "AIzaSyDbzYdx1P-_2QBUZbt8d9Zexb6Fk8fugZ8",
+    projectId: "webpush-deneme",
+    messagingSenderId: "992812112924",
+    appId: "1:992812112924:web:4cc16aaa4afdefb94c13d9"
   };
 
   function sendSubscription(token) {
     var data = {
-      "appAlias": "##APP_ALIAS##",
+      "appAlias": "muhammed-wh.github.io",
       "token": token,
       "contactKey": "",
       "permission": true,
@@ -474,7 +474,7 @@
       "appVersion": "",
       "sdkVersion": "0.1"
     };
-    var request = fetch('https://##DN_PUSH_API_DOMAIN##/api/mobile/subscription', {
+    var request = fetch('https://pushdev.dengage.com/api/mobile/subscription', {
       method: 'POST',
       // *GET, POST, PUT, DELETE, etc.
       mode: 'cors',
@@ -541,7 +541,7 @@
     }
   }
 
-  var appSettings = JSON.parse('##APP_PARAMETERS##');
+  var appSettings = JSON.parse('{"name":"muhammed-wh.github.io","siteUrl":"https://muhammed-wh.github.io","defaultIconUrl":"https://www.materialui.co/materialIcons/action/check_circle_grey_192x192.png","selectedPrompt":"SLIDE","autoShow":false,"autoShowSettings":{"delay":10,"promptAfterXVisits":3,"repromptAfterXMinutes":5,"denyWaitTime":10},"slideSettings":{"location":"TOP_CENTER","theme":"BOTTOM_BTNS","fixed":false,"showIcon":true,"mainColor":"#1165f1","showTitle":false,"title":"","text":"We\'d like to show you notifications for the latest news and updates.","acceptBtnText":"Allow","cancelBtnText":"No Thanks","advancedOptions":false,"details":null},"bannerSettings":{"location":"BOTTOM","theme":"DEFAULT","fixed":true,"showIcon":true,"mainColor":"#333333","text":"","acceptBtnText":"Enable","advancedOptions":false,"details":{"backgroundColor":"","fontFamily":"","border":0,"borderColor":"","shadow":false,"textSyle":{"textColor":"#333333","fontSize":"","fontWeight":""},"acceptBtnStyle":{"backgroundColor":"","hoverBackgroundColor":"","textColor":"#333333","fontSize":"","fontWeight":"","border":0,"borderColor":"","borderRadius":0,"shadow":false},"cancelBtnStyle":{"backgroundColor":"","hoverBackgroundColor":"","textColor":"#333333","hoverTextColor":"","fontSize":"","fontWeight":"","border":0,"borderColor":"","shadow":false}}},"bellSettings":{"size":"MEDIUM","location":"RIGHT","mainColor":"#1165f1","accentColor":"#333333","hideIfSubscribed":false,"nonSubscriberTooltip":"","blockedSubscriberTooltip":"","subscribedTooltip":"","afterSubscriptionText":"","unsubscribeText":"","dialogTitle":"","subscribeBtnText":"","unsubscribeBtnText":"","unblockNotificationText":"","unblockGuideText":"","bottomOffset":0,"leftOffset":0,"rightOffset":0,"advancedOptions":false},"welcomeNotification":{"enabled":false,"title":"","message":"","link":""}}');
 
   if (isBrowserSupported()) {
     window.addEventListener('load', function () {
