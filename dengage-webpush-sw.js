@@ -8,10 +8,10 @@
   firebase = firebase && firebase.hasOwnProperty('default') ? firebase['default'] : firebase;
 
   var firebaseConfig = {
-    apiKey: "AIzaSyDbzYdx1P-_2QBUZbt8d9Zexb6Fk8fugZ8",
-    projectId: "webpush-deneme",
-    messagingSenderId: "992812112924",
-    appId: "1:992812112924:web:4cc16aaa4afdefb94c13d9"
+    apiKey: "##FIREBASE_API_KEY##",
+    projectId: "##FIREBASE_PROJECT_ID##",
+    messagingSenderId: "##FIREBASE_SENDER_ID##",
+    appId: "##FIREBASE_APP_ID##"
   };
   var fb = firebase.initializeApp(firebaseConfig);
   var messaging = fb.messaging();

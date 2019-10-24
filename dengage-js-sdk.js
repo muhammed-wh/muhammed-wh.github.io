@@ -7,6 +7,39 @@
 
   firebase = firebase && firebase.hasOwnProperty('default') ? firebase['default'] : firebase;
 
+  function shadeHexColor(color, percent) {
+    var f = parseInt(color.slice(1), 16),
+        t = percent < 0 ? 0 : 255,
+        p = percent < 0 ? percent * -1 : percent,
+        R = f >> 16,
+        G = f >> 8 & 0x00FF,
+        B = f & 0x0000FF;
+    return "#" + (0x1000000 + (Math.round((t - R) * p) + R) * 0x10000 + (Math.round((t - G) * p) + G) * 0x100 + (Math.round((t - B) * p) + B)).toString(16).slice(1);
+  }
+  function getFontFamily(font) {
+    switch (font) {
+      case 'ARIAL':
+        return 'Helvetica, Arial, sans-serif';
+
+      case 'TAHOMA':
+        return 'Tahoma, sans-serif';
+
+      case 'VERDANA':
+        return 'Verdana, sans-serif';
+
+      case 'GEORGIA':
+        return 'Georgia, Times, serif';
+
+      case 'TIMES':
+        return '"Times New Roman", Times, serif';
+
+      case 'COURIER':
+        return '"Courier New", Courier, monospace';
+    }
+
+    return 'inherit';
+  }
+
   function generateSlideHtml(appSettings) {
     var s = appSettings.slideSettings;
     var mainColor = s.mainColor || "#1165f1";
@@ -14,7 +47,6 @@
     var slide = {
       location: s.location || "TOP_CENTER",
       showIcon: s.showIcon || false,
-      mainColor: mainColor,
       title: s.showTitle ? s.title || '' : '',
       text: s.text || "We'd like to show you notifications for the latest news and updates.",
       acceptBtnText: s.acceptBtnText || "Allow",
@@ -28,7 +60,7 @@
       details = getDefaultSlideDetails(mainColor);
     }
 
-    return "\n<div class=\"dn-slide ".concat(slide.showIcon ? '' : 'dn-slide--noLogo', " ").concat(slide.title ? '' : 'dn-slide--noTitle', " ").concat(theme, "\">\n  <div class=\"dn-slide-logo\"><img src=\"").concat(appSettings.defaultIconUrl, "\"></div>\n  <div class=\"dn-slide-body\">\n      <h3 class=\"dn-slide-title\">").concat(slide.title, "</h3>\n      <p class=\"dn-slide-message\">").concat(slide.text, "</p>\n      <div class=\"dn-slide-buttons horizontal\">\n          <button class=\"dn-slide-deny-btn\">").concat(slide.cancelBtnText, "</button>\n          <button class=\"dn-slide-accept-btn\">").concat(slide.acceptBtnText, "</button>\n      </div>\n  </div>\n  <div class=\"dn-slide-buttons vertical\">\n      <button class=\"dn-slide-accept-btn\">").concat(slide.acceptBtnText, "</button>\n      <button class=\"dn-slide-deny-btn\">").concat(slide.cancelBtnText, "</button>\n  </div>\n</div>\n<style>\n  .dn-slide {\n      box-shadow: ").concat(details.shadow ? '0 3px 10px 0 rgba(0, 0, 0, 0.43) !important' : 'none', " ;\n      background: ").concat(details.backgroundColor, ";\n      border: ").concat(details.border, "px solid ").concat(details.borderColor, ";\n      border-radius: ").concat(details.borderRadius, "px;\n      display: flex;\n      overflow:auto;\n      width:520px;\n      max-width: 520px;\n      height:auto;\n  }\n\n  .dn-slide-logo {\n      width: 30%;\n      padding: 15px;\n      box-sizing: border-box;\n      display: flex;\n      justify-content: center;\n      align-items: center;\n  }\n  .RIGHT_BTNS .dn-slide-logo {\n      width: 18%;\n      padding: 8px;\n  }\n  .dn-slide-logo img {\n      width: 100%;\n  }\n  .dn-slide--noLogo .dn-slide-logo {\n      display: none;\n  }\n\n  .dn-slide-body {\n      width: 70%;\n      padding: 15px;\n      box-sizing: border-box;\n      line-height: 1.4;\n      vertical-align: middle;\n      display: flex;\n      flex-direction: column;\n  }\n  .RIGHT_BTNS .dn-slide-body {\n      width: 58%;\n      padding: 8px;\n  }\n  .dn-slide--noLogo .dn-slide-body {\n      width: 100%;\n  }\n\n  .dn-slide-title {\n      background: none;\n      color: ").concat(details.titleSyle.textColor, ";\n      font-family: ").concat(getFontFamily(details.fontFamily), ";\n      font-size: ").concat(details.titleSyle.fontSize, "px;\n      font-weight: ").concat(details.titleSyle.fontWeight, ";\n      margin: 0;\n      padding: 0;\n  }\n  .dn-slide--noTitle .dn-slide-title {\n      display: none;\n  }\n\n  .dn-slide-message {\n      background: none;\n      color: ").concat(details.textSyle.textColor, ";\n      font-family: ").concat(getFontFamily(details.fontFamily), ";\n      font-size: ").concat(details.textSyle.fontSize, "px;\n      font-weight: ").concat(details.textSyle.fontWeight, ";\n      padding: 0;\n      margin: 12px 0;\n      flex: 1;\n  }\n  .dn-slide--noTitle .dn-slide-message {\n      margin: 5px 0 20px 10px;\n  }\n\n  .dn-slide-buttons {\n      display: flex;\n  }\n  .dn-slide-buttons.vertical {\n      flex-direction: column;\n      justify-content: center;\n      align-items: center;\n      width: 24%;\n      padding: 8px;\n  }\n  .dn-slide-buttons.horizontal {\n      justify-content: flex-end;\n      align-items: center;\n  }\n  .BOTTOM_BTNS .vertical {\n      display: none;\n  }\n  .RIGHT_BTNS .horizontal {\n      display: none;\n  }\n  .dn-slide-buttons button {\n      padding: 8px 15px;\n      margin: 0;\n      text-align: center;\n      cursor: pointer;\n  }\n  .dn-slide-buttons.horizontal button {\n      margin-left: 15px;\n  }\n  .dn-slide-buttons.vertical button {\n      width: 100%;\n  }\n  .dn-slide-buttons.vertical button:first-child {\n      margin-bottom: 5px;\n  }\n\n  .dn-slide-buttons .dn-slide-accept-btn {\n      background-color: ").concat(details.acceptBtnStyle.backgroundColor, ";\n      color: ").concat(details.acceptBtnStyle.textColor, ";\n      font-family: ").concat(getFontFamily(details.fontFamily), ";\n      font-size: ").concat(details.acceptBtnStyle.fontSize, "px;\n      font-weight: ").concat(details.acceptBtnStyle.fontWeight, ";\n      border: ").concat(details.acceptBtnStyle.border, "px solid ").concat(details.acceptBtnStyle.borderColor, ";\n      border-radius: ").concat(details.acceptBtnStyle.borderRadius, "px;\n      box-shadow: ").concat(details.acceptBtnStyle.shadow ? '0 2px 5px 0 rgba(0, 0, 0, 0.4) !important' : 'none', " ;\n  }\n  .dn-slide-buttons .dn-slide-accept-btn:hover {\n      background-color: ").concat(details.acceptBtnStyle.hoverBackgroundColor, ";\n      color: ").concat(details.acceptBtnStyle.hoverTextColor, ";\n  }\n\n  .dn-slide-buttons .dn-slide-deny-btn {\n      background-color: ").concat(details.cancelBtnStyle.backgroundColor, ";\n      color: ").concat(details.cancelBtnStyle.textColor, ";\n      font-family: ").concat(getFontFamily(details.fontFamily), ";\n      font-size: ").concat(details.cancelBtnStyle.fontSize, "px;\n      font-weight: ").concat(details.cancelBtnStyle.fontWeight, ";\n      border: ").concat(details.cancelBtnStyle.border, "px solid ").concat(details.cancelBtnStyle.borderColor, ";\n      border-radius: ").concat(details.cancelBtnStyle.borderRadius, "px;\n      box-shadow: ").concat(details.cancelBtnStyle.shadow ? '0 2px 5px 0 rgba(0, 0, 0, 0.4) !important' : 'none', " ;\n  }\n  .dn-slide-buttons .dn-slide-deny-btn:hover {\n      background-color: ").concat(details.cancelBtnStyle.hoverBackgroundColor, ";\n      color: ").concat(details.cancelBtnStyle.hoverTextColor, ";\n  }\n\n  .dn-hide {\n      display: none;\n  }\n\n  @media only screen and (max-width: 767px) {\n      #visilabs_web_push_perm_box {\n          width: 94% !important;\n          margin-left: -47% !important;\n      }\n\n      .dn-slide {\n          width: 100% !important;\n          max-width: 100%;\n      }\n\n      /*.dn-slide-title {\n          font-size: 12px;\n      }\n\n      .dn-slide-message {\n          font-size: 11px;\n      }\n\n      .dn-slide-buttons button {\n          padding: 5px 10px;\n          margin-left: 15px;\n          font-size: 12px;\n      }*/\n  }\n</style>\n    ");
+    return "\n<div class=\"dn-slide ".concat(slide.showIcon ? '' : 'dn-slide--noLogo', " ").concat(slide.title ? '' : 'dn-slide--noTitle', " ").concat(theme, "\">\n  <div class=\"dn-slide-logo\"><img src=\"").concat(appSettings.defaultIconUrl, "\"></div>\n  <div class=\"dn-slide-body\">\n      <h3 class=\"dn-slide-title\">").concat(slide.title, "</h3>\n      <p class=\"dn-slide-message\">").concat(slide.text, "</p>\n      <div class=\"dn-slide-buttons horizontal\">\n          <button class=\"dn-slide-deny-btn\">").concat(slide.cancelBtnText, "</button>\n          <button class=\"dn-slide-accept-btn\">").concat(slide.acceptBtnText, "</button>\n      </div>\n  </div>\n  <div class=\"dn-slide-buttons vertical\">\n      <button class=\"dn-slide-accept-btn\">").concat(slide.acceptBtnText, "</button>\n      <button class=\"dn-slide-deny-btn\">").concat(slide.cancelBtnText, "</button>\n  </div>\n</div>\n<style>\n  .dn-slide {\n      box-shadow: ").concat(details.shadow ? '0 3px 10px 0 rgba(0, 0, 0, 0.43) !important' : 'none', " ;\n      background: ").concat(details.backgroundColor, ";\n      border: ").concat(details.border, "px solid ").concat(details.borderColor, ";\n      border-radius: ").concat(details.borderRadius, "px;\n      display: flex;\n      overflow:auto;\n      width:520px;\n      max-width: 520px;\n      height:auto;\n  }\n\n  .dn-slide-logo {\n      width: 30%;\n      padding: 15px;\n      box-sizing: border-box;\n      display: flex;\n      justify-content: center;\n      align-items: center;\n  }\n  .RIGHT_BTNS .dn-slide-logo {\n      width: 18%;\n      padding: 8px;\n  }\n  .dn-slide-logo img {\n      width: 100%;\n  }\n  .dn-slide--noLogo .dn-slide-logo {\n      display: none;\n  }\n\n  .dn-slide-body {\n      width: 70%;\n      padding: 15px;\n      box-sizing: border-box;\n      line-height: 1.4;\n      vertical-align: middle;\n      display: flex;\n      flex-direction: column;\n  }\n  .RIGHT_BTNS .dn-slide-body {\n      width: 58%;\n      padding: 8px;\n  }\n  .dn-slide--noLogo .dn-slide-body {\n      width: 100%;\n  }\n\n  .dn-slide-title {\n      background: none;\n      color: ").concat(details.titleSyle.textColor, ";\n      font-family: ").concat(getFontFamily(details.fontFamily), ";\n      font-size: ").concat(details.titleSyle.fontSize, "px;\n      font-weight: ").concat(details.titleSyle.fontWeight, ";\n      margin: 0;\n      padding: 0;\n  }\n  .dn-slide--noTitle .dn-slide-title {\n      display: none;\n  }\n\n  .dn-slide-message {\n      background: none;\n      color: ").concat(details.textSyle.textColor, ";\n      font-family: ").concat(getFontFamily(details.fontFamily), ";\n      font-size: ").concat(details.textSyle.fontSize, "px;\n      font-weight: ").concat(details.textSyle.fontWeight, ";\n      padding: 0;\n      margin: 12px 0;\n      flex: 1;\n  }\n  .dn-slide--noTitle .dn-slide-message {\n      margin: 5px 0 20px 10px;\n  }\n\n  .dn-slide-buttons {\n      display: flex;\n  }\n  .dn-slide-buttons.vertical {\n      flex-direction: column;\n      justify-content: center;\n      align-items: center;\n      width: 24%;\n      padding: 8px;\n  }\n  .dn-slide-buttons.horizontal {\n      justify-content: flex-end;\n      align-items: center;\n  }\n  .BOTTOM_BTNS .vertical {\n      display: none;\n  }\n  .RIGHT_BTNS .horizontal {\n      display: none;\n  }\n  .dn-slide-buttons button {\n      padding: 8px 15px;\n      margin: 0;\n      text-align: center;\n      cursor: pointer;\n  }\n  .dn-slide-buttons.horizontal button {\n      margin-left: 15px;\n  }\n  .dn-slide-buttons.vertical button {\n      width: 100%;\n  }\n  .dn-slide-buttons.vertical button:first-child {\n      margin-bottom: 5px;\n  }\n\n  .dn-slide-buttons .dn-slide-accept-btn {\n      background-color: ").concat(details.acceptBtnStyle.backgroundColor, ";\n      color: ").concat(details.acceptBtnStyle.textColor, ";\n      font-family: ").concat(getFontFamily(details.fontFamily), ";\n      font-size: ").concat(details.acceptBtnStyle.fontSize, "px;\n      font-weight: ").concat(details.acceptBtnStyle.fontWeight, ";\n      border: ").concat(details.acceptBtnStyle.border, "px solid ").concat(details.acceptBtnStyle.borderColor, ";\n      border-radius: ").concat(details.acceptBtnStyle.borderRadius, "px;\n      box-shadow: ").concat(details.acceptBtnStyle.shadow ? '0 2px 5px 0 rgba(0, 0, 0, 0.4) !important' : 'none', " ;\n  }\n  .dn-slide-buttons .dn-slide-accept-btn:hover {\n      background-color: ").concat(details.acceptBtnStyle.hoverBackgroundColor, ";\n      color: ").concat(details.acceptBtnStyle.hoverTextColor, ";\n  }\n\n  .dn-slide-buttons .dn-slide-deny-btn {\n      background-color: ").concat(details.cancelBtnStyle.backgroundColor, ";\n      color: ").concat(details.cancelBtnStyle.textColor, ";\n      font-family: ").concat(getFontFamily(details.fontFamily), ";\n      font-size: ").concat(details.cancelBtnStyle.fontSize, "px;\n      font-weight: ").concat(details.cancelBtnStyle.fontWeight, ";\n      border: ").concat(details.cancelBtnStyle.border, "px solid ").concat(details.cancelBtnStyle.borderColor, ";\n      border-radius: ").concat(details.cancelBtnStyle.borderRadius, "px;\n      box-shadow: ").concat(details.cancelBtnStyle.shadow ? '0 2px 5px 0 rgba(0, 0, 0, 0.4) !important' : 'none', " ;\n  }\n  .dn-slide-buttons .dn-slide-deny-btn:hover {\n      background-color: ").concat(details.cancelBtnStyle.hoverBackgroundColor, ";\n      color: ").concat(details.cancelBtnStyle.hoverTextColor, ";\n  }\n\n  @media only screen and (max-width: 767px) {\n      #dengage-push-perm-slide {\n          width: 94% !important;\n          margin-left: -47% !important;\n      }\n\n      .dn-slide {\n          width: 100% !important;\n          max-width: 100%;\n      }\n\n      /*.dn-slide-title {\n          font-size: 12px;\n      }\n\n      .dn-slide-message {\n          font-size: 11px;\n      }\n\n      .dn-slide-buttons button {\n          padding: 5px 10px;\n          margin-left: 15px;\n          font-size: 12px;\n      }*/\n  }\n</style>\n    ");
   }
 
   function getDefaultSlideDetails(mainColor) {
@@ -51,7 +83,7 @@
       },
       acceptBtnStyle: {
         backgroundColor: mainColor,
-        hoverBackgroundColor: mainColor,
+        hoverBackgroundColor: shadeHexColor(mainColor, -0.2),
         textColor: "#ffffff",
         hoverTextColor: "#ffffff",
         fontSize: "16",
@@ -65,7 +97,7 @@
         backgroundColor: "#ffffff",
         hoverBackgroundColor: "#ffffff",
         textColor: mainColor,
-        hoverTextColor: mainColor,
+        hoverTextColor: shadeHexColor(mainColor, -0.2),
         fontSize: "16",
         fontWeight: "normal",
         border: 0,
@@ -100,7 +132,7 @@
       },
       acceptBtnStyle: {
         backgroundColor: acceptBtnStyle.backgroundColor || mainColor,
-        hoverBackgroundColor: acceptBtnStyle.backgroundColor || mainColor,
+        hoverBackgroundColor: acceptBtnStyle.hoverBackgroundColor || shadeHexColor(mainColor, -0.2),
         textColor: acceptBtnStyle.textColor || "#ffffff",
         hoverTextColor: acceptBtnStyle.hoverTextColor || "#ffffff",
         fontSize: acceptBtnStyle.fontSize || "16",
@@ -112,9 +144,9 @@
       },
       cancelBtnStyle: {
         backgroundColor: cancelBtnStyle.backgroundColor || "#ffffff",
-        hoverBackgroundColor: cancelBtnStyle.backgroundColor || "#ffffff",
+        hoverBackgroundColor: cancelBtnStyle.hoverBackgroundColor || "#ffffff",
         textColor: cancelBtnStyle.textColor || mainColor,
-        hoverTextColor: cancelBtnStyle.hoverTextColor || mainColor,
+        hoverTextColor: cancelBtnStyle.hoverTextColor || shadeHexColor(mainColor, -0.2),
         fontSize: cancelBtnStyle.fontSize || "16",
         fontWeight: cancelBtnStyle.fontWeight || "normal",
         border: cancelBtnStyle.border || 0,
@@ -125,31 +157,6 @@
     };
   }
 
-  function getFontFamily(font) {
-    switch (font) {
-      case 'ARIAL':
-        return 'Helvetica, Arial, sans-serif';
-
-      case 'TAHOMA':
-        return 'Tahoma, sans-serif';
-
-      case 'VERDANA':
-        return 'Verdana, sans-serif';
-
-      case 'GEORGIA':
-        return 'Georgia, Times, serif';
-
-      case 'TIMES':
-        return '"Times New Roman", Times, serif';
-
-      case 'COURIER':
-        return '"Courier New", Courier, monospace';
-    }
-
-    return 'inherit';
-  }
-
-  //import { deepCopy, mergeRecursive } from "../../utils";
   function showSlidePromt(appSettings, isPreview) {
     var container = document.createElement("div");
     container.className = "dengage-push-perm-slide";
@@ -201,150 +208,108 @@
     };
   }
 
-  function generateSlideHtml$1(appSettings) {
-    var s = appSettings.slideSettings;
-    var mainColor = s.mainColor || "#1165f1";
-    var theme = s.theme || "BOTTOM_BTNS";
-    var slide = {
-      location: s.location || "TOP_CENTER",
+  function generateBannerHtml(appSettings) {
+    var s = appSettings.bannerSettings;
+    var mainColor = s.mainColor || "#333333";
+    var banner = {
+      location: s.location || "TOP",
       showIcon: s.showIcon || false,
-      mainColor: mainColor,
-      title: s.showTitle ? s.title || '' : '',
       text: s.text || "We'd like to show you notifications for the latest news and updates.",
-      acceptBtnText: s.acceptBtnText || "Allow",
-      cancelBtnText: s.cancelBtnText || "No Thanks"
+      acceptBtnText: s.acceptBtnText || "Allow"
     };
     var details = {};
 
     if (s.advancedOptions) {
-      details = fixMissingSlideDetails$1(s.details, mainColor);
+      details = fixMissingBannerDetails(s.details, mainColor);
     } else {
-      details = getDefaultSlideDetails$1(mainColor);
+      details = getDefaultBannerDetails(mainColor);
     }
 
-    return "\n<div class=\"dn-slide ".concat(slide.showIcon ? '' : 'dn-slide--noLogo', " ").concat(slide.title ? '' : 'dn-slide--noTitle', " ").concat(theme, "\">\n  <div class=\"dn-slide-logo\"><img src=\"").concat(appSettings.defaultIconUrl, "\"></div>\n  <div class=\"dn-slide-body\">\n      <h3 class=\"dn-slide-title\">").concat(slide.title, "</h3>\n      <p class=\"dn-slide-message\">").concat(slide.text, "</p>\n      <div class=\"dn-slide-buttons horizontal\">\n          <button class=\"dn-slide-deny-btn\">").concat(slide.cancelBtnText, "</button>\n          <button class=\"dn-slide-accept-btn\">").concat(slide.acceptBtnText, "</button>\n      </div>\n  </div>\n  <div class=\"dn-slide-buttons vertical\">\n      <button class=\"dn-slide-accept-btn\">").concat(slide.acceptBtnText, "</button>\n      <button class=\"dn-slide-deny-btn\">").concat(slide.cancelBtnText, "</button>\n  </div>\n</div>\n<style>\n  .dn-slide {\n      box-shadow: ").concat(details.shadow ? '0 3px 10px 0 rgba(0, 0, 0, 0.43) !important' : 'none', " ;\n      background: ").concat(details.backgroundColor, ";\n      border: ").concat(details.border, "px solid ").concat(details.borderColor, ";\n      border-radius: ").concat(details.borderRadius, "px;\n      display: flex;\n      overflow:auto;\n      width:520px;\n      max-width: 520px;\n      height:auto;\n  }\n\n  .dn-slide-logo {\n      width: 30%;\n      padding: 15px;\n      box-sizing: border-box;\n      display: flex;\n      justify-content: center;\n      align-items: center;\n  }\n  .RIGHT_BTNS .dn-slide-logo {\n      width: 18%;\n      padding: 8px;\n  }\n  .dn-slide-logo img {\n      width: 100%;\n  }\n  .dn-slide--noLogo .dn-slide-logo {\n      display: none;\n  }\n\n  .dn-slide-body {\n      width: 70%;\n      padding: 15px;\n      box-sizing: border-box;\n      line-height: 1.4;\n      vertical-align: middle;\n      display: flex;\n      flex-direction: column;\n  }\n  .RIGHT_BTNS .dn-slide-body {\n      width: 58%;\n      padding: 8px;\n  }\n  .dn-slide--noLogo .dn-slide-body {\n      width: 100%;\n  }\n\n  .dn-slide-title {\n      background: none;\n      color: ").concat(details.titleSyle.textColor, ";\n      font-family: ").concat(getFontFamily$1(details.fontFamily), ";\n      font-size: ").concat(details.titleSyle.fontSize, "px;\n      font-weight: ").concat(details.titleSyle.fontWeight, ";\n      margin: 0;\n      padding: 0;\n  }\n  .dn-slide--noTitle .dn-slide-title {\n      display: none;\n  }\n\n  .dn-slide-message {\n      background: none;\n      color: ").concat(details.textSyle.textColor, ";\n      font-family: ").concat(getFontFamily$1(details.fontFamily), ";\n      font-size: ").concat(details.textSyle.fontSize, "px;\n      font-weight: ").concat(details.textSyle.fontWeight, ";\n      padding: 0;\n      margin: 12px 0;\n      flex: 1;\n  }\n  .dn-slide--noTitle .dn-slide-message {\n      margin: 5px 0 20px 10px;\n  }\n\n  .dn-slide-buttons {\n      display: flex;\n  }\n  .dn-slide-buttons.vertical {\n      flex-direction: column;\n      justify-content: center;\n      align-items: center;\n      width: 24%;\n      padding: 8px;\n  }\n  .dn-slide-buttons.horizontal {\n      justify-content: flex-end;\n      align-items: center;\n  }\n  .BOTTOM_BTNS .vertical {\n      display: none;\n  }\n  .RIGHT_BTNS .horizontal {\n      display: none;\n  }\n  .dn-slide-buttons button {\n      padding: 8px 15px;\n      margin: 0;\n      text-align: center;\n      cursor: pointer;\n  }\n  .dn-slide-buttons.horizontal button {\n      margin-left: 15px;\n  }\n  .dn-slide-buttons.vertical button {\n      width: 100%;\n  }\n  .dn-slide-buttons.vertical button:first-child {\n      margin-bottom: 5px;\n  }\n\n  .dn-slide-buttons .dn-slide-accept-btn {\n      background-color: ").concat(details.acceptBtnStyle.backgroundColor, ";\n      color: ").concat(details.acceptBtnStyle.textColor, ";\n      font-family: ").concat(getFontFamily$1(details.fontFamily), ";\n      font-size: ").concat(details.acceptBtnStyle.fontSize, "px;\n      font-weight: ").concat(details.acceptBtnStyle.fontWeight, ";\n      border: ").concat(details.acceptBtnStyle.border, "px solid ").concat(details.acceptBtnStyle.borderColor, ";\n      border-radius: ").concat(details.acceptBtnStyle.borderRadius, "px;\n      box-shadow: ").concat(details.acceptBtnStyle.shadow ? '0 2px 5px 0 rgba(0, 0, 0, 0.4) !important' : 'none', " ;\n  }\n  .dn-slide-buttons .dn-slide-accept-btn:hover {\n      background-color: ").concat(details.acceptBtnStyle.hoverBackgroundColor, ";\n      color: ").concat(details.acceptBtnStyle.hoverTextColor, ";\n  }\n\n  .dn-slide-buttons .dn-slide-deny-btn {\n      background-color: ").concat(details.cancelBtnStyle.backgroundColor, ";\n      color: ").concat(details.cancelBtnStyle.textColor, ";\n      font-family: ").concat(getFontFamily$1(details.fontFamily), ";\n      font-size: ").concat(details.cancelBtnStyle.fontSize, "px;\n      font-weight: ").concat(details.cancelBtnStyle.fontWeight, ";\n      border: ").concat(details.cancelBtnStyle.border, "px solid ").concat(details.cancelBtnStyle.borderColor, ";\n      border-radius: ").concat(details.cancelBtnStyle.borderRadius, "px;\n      box-shadow: ").concat(details.cancelBtnStyle.shadow ? '0 2px 5px 0 rgba(0, 0, 0, 0.4) !important' : 'none', " ;\n  }\n  .dn-slide-buttons .dn-slide-deny-btn:hover {\n      background-color: ").concat(details.cancelBtnStyle.hoverBackgroundColor, ";\n      color: ").concat(details.cancelBtnStyle.hoverTextColor, ";\n  }\n\n  .dn-hide {\n      display: none;\n  }\n\n  @media only screen and (max-width: 767px) {\n      #visilabs_web_push_perm_box {\n          width: 94% !important;\n          margin-left: -47% !important;\n      }\n\n      .dn-slide {\n          width: 100% !important;\n          max-width: 100%;\n      }\n\n      /*.dn-slide-title {\n          font-size: 12px;\n      }\n\n      .dn-slide-message {\n          font-size: 11px;\n      }\n\n      .dn-slide-buttons button {\n          padding: 5px 10px;\n          margin-left: 15px;\n          font-size: 12px;\n      }*/\n  }\n</style>\n    ");
+    return "\n<div class=\"dn-banner ".concat(banner.showIcon ? '' : 'dn-banner--noLogo', "\">\n  <div class=\"dn-banner-logo\"><img src=\"").concat(appSettings.defaultIconUrl, "\"></div>\n  <div class=\"dn-banner-text\">\n    ").concat(banner.text, "\n  </div>\n  <div class=\"dn-banner-buttons\">\n      <button class=\"dn-banner-accept-btn\">").concat(banner.acceptBtnText, "</button>\n      <button class=\"dn-banner-deny-btn\">x</button>\n  </div>\n</div>\n<style>\n  .dn-banner {\n      box-shadow: ").concat(details.shadow ? '0 3px 10px 0 rgba(0, 0, 0, 0.43) !important' : 'none', " ;\n      background: ").concat(details.backgroundColor, ";\n      border-bottom: ").concat(details.border, "px solid ").concat(details.borderColor, ";\n      display: flex;\n      overflow:auto;\n      width: 100%;\n      height:auto;\n  }\n\n  .dn-banner-logo {\n      padding: 15px;\n      box-sizing: border-box;\n      display: flex;\n      justify-content: center;\n      align-items: center;\n  }\n  .dn-banner-logo img {\n      width: 36px;\n  }\n  .dn-banner--noLogo .dn-banner-logo {\n      display: none;\n  }\n\n  .dn-banner-text {\n      flex: 1;\n      padding: 15px;\n      box-sizing: border-box;\n      line-height: 1.4;\n      display: flex;\n      align-items: center;\n      color: ").concat(details.textSyle.textColor, ";\n      font-family: ").concat(getFontFamily(details.fontFamily), ";\n      font-size: ").concat(details.textSyle.fontSize, "px;\n      font-weight: ").concat(details.textSyle.fontWeight, ";\n  }\n  .dn-banner--noLogo .dn-banner-body {\n      width: 100%;\n  }\n\n  .dn-banner-buttons {\n      display: flex;\n      padding-right: 10px;\n      align-items: center;\n  }\n  .dn-banner-buttons button {\n      padding: 8px 15px;\n      margin: 0;\n      text-align: center;\n      cursor: pointer;\n  }\n\n  .dn-banner-buttons .dn-banner-accept-btn {\n      background-color: ").concat(details.acceptBtnStyle.backgroundColor, ";\n      color: ").concat(details.acceptBtnStyle.textColor, ";\n      font-family: ").concat(getFontFamily(details.fontFamily), ";\n      font-size: ").concat(details.acceptBtnStyle.fontSize, "px;\n      font-weight: ").concat(details.acceptBtnStyle.fontWeight, ";\n      border: ").concat(details.acceptBtnStyle.border, "px solid ").concat(details.acceptBtnStyle.borderColor, ";\n      border-radius: ").concat(details.acceptBtnStyle.borderRadius, "px;\n      box-shadow: ").concat(details.acceptBtnStyle.shadow ? '0 2px 5px 0 rgba(0, 0, 0, 0.4) !important' : 'none', " ;\n  }\n  .dn-banner-buttons .dn-banner-accept-btn:hover {\n      background-color: ").concat(details.acceptBtnStyle.hoverBackgroundColor, ";\n      color: ").concat(details.acceptBtnStyle.hoverTextColor, ";\n  }\n\n  .dn-banner-buttons .dn-banner-deny-btn {\n      background-color: ").concat(details.cancelBtnStyle.backgroundColor, ";\n      color: ").concat(details.cancelBtnStyle.textColor, ";\n      font-family: ").concat(getFontFamily(details.fontFamily), ";\n      font-size: ").concat(details.cancelBtnStyle.fontSize, "px;\n      font-weight: ").concat(details.cancelBtnStyle.fontWeight, ";\n      border: ").concat(details.cancelBtnStyle.border, "px solid ").concat(details.cancelBtnStyle.borderColor, ";\n      border-radius: ").concat(details.cancelBtnStyle.borderRadius, "px;\n      box-shadow: ").concat(details.cancelBtnStyle.shadow ? '0 2px 5px 0 rgba(0, 0, 0, 0.4) !important' : 'none', " ;\n  }\n  .dn-banner-buttons .dn-banner-deny-btn:hover {\n      background-color: ").concat(details.cancelBtnStyle.hoverBackgroundColor, ";\n      color: ").concat(details.cancelBtnStyle.hoverTextColor, ";\n  }\n\n  @media only screen and (max-width: 767px) {\n\n  }\n</style>\n    ");
   }
 
-  function getDefaultSlideDetails$1(mainColor) {
+  function getDefaultBannerDetails(mainColor) {
     return {
-      backgroundColor: "#ffffff",
+      //advanced options
+      backgroundColor: '#ffffff',
       fontFamily: 'ARIAL',
-      border: 0,
+      border: 2,
       borderColor: mainColor,
-      borderRadius: 3,
       shadow: true,
       textSyle: {
-        textColor: "#555555",
-        fontSize: "15",
-        fontWeight: "normal"
-      },
-      titleSyle: {
-        textColor: "#555555",
-        fontSize: "16",
-        fontWeight: "bold"
+        textColor: mainColor,
+        fontSize: '15',
+        fontWeight: 'normal'
       },
       acceptBtnStyle: {
         backgroundColor: mainColor,
-        hoverBackgroundColor: mainColor,
-        textColor: "#ffffff",
-        hoverTextColor: "#ffffff",
-        fontSize: "16",
-        fontWeight: "normal",
+        hoverBackgroundColor: shadeHexColor(mainColor, -0.2),
+        textColor: '#ffffff',
+        hoverTextColor: '#ffffff',
+        fontSize: '16',
+        fontWeight: 'normal',
         border: 0,
-        borderColor: mainColor,
-        borderRadius: 3,
+        borderColor: '',
+        borderRadius: 0,
         shadow: false
       },
       cancelBtnStyle: {
-        backgroundColor: "#ffffff",
-        hoverBackgroundColor: "#ffffff",
-        textColor: mainColor,
+        backgroundColor: '#eeeeee',
+        hoverBackgroundColor: '#cccccc',
+        textColor: shadeHexColor(mainColor, 0.2),
         hoverTextColor: mainColor,
-        fontSize: "16",
-        fontWeight: "normal",
+        fontSize: '16',
+        fontWeight: 'bold',
         border: 0,
-        borderColor: mainColor,
-        borderRadius: 3,
+        borderColor: '',
         shadow: false
       }
     };
   }
 
-  function fixMissingSlideDetails$1(details, mainColor) {
+  function fixMissingBannerDetails(details, mainColor) {
     var textSyle = details.textSyle || {};
-    var titleSyle = details.titleSyle || {};
     var acceptBtnStyle = details.acceptBtnStyle || {};
     var cancelBtnStyle = details.cancelBtnStyle || {};
     return {
       backgroundColor: details.backgroundColor || "#ffffff",
       fontFamily: details.fontFamily || 'ARIAL',
-      border: details.border || 0,
+      border: details.border || 2,
       borderColor: details.borderColor || mainColor,
-      borderRadius: details.borderRadius || 3,
+      borderRadius: details.borderRadius || 0,
       shadow: details.shadow == null ? true : details.shadow,
       textSyle: {
-        textColor: textSyle.textColor || "#555555",
+        textColor: textSyle.textColor || "#333333",
         fontSize: textSyle.fontSize || "15",
         fontWeight: textSyle.fontWeight || "normal"
       },
-      titleSyle: {
-        textColor: titleSyle.textColor || "#555555",
-        fontSize: titleSyle.fontSize || "16",
-        fontWeight: titleSyle.fontWeight || "bold"
-      },
       acceptBtnStyle: {
         backgroundColor: acceptBtnStyle.backgroundColor || mainColor,
-        hoverBackgroundColor: acceptBtnStyle.backgroundColor || mainColor,
+        hoverBackgroundColor: acceptBtnStyle.hoverBackgroundColor || shadeHexColor(mainColor, -0.2),
         textColor: acceptBtnStyle.textColor || "#ffffff",
         hoverTextColor: acceptBtnStyle.hoverTextColor || "#ffffff",
         fontSize: acceptBtnStyle.fontSize || "16",
         fontWeight: acceptBtnStyle.fontWeight || "normal",
         border: acceptBtnStyle.border || 0,
         borderColor: acceptBtnStyle.borderColor || mainColor,
-        borderRadius: acceptBtnStyle.borderRadius || 3,
+        borderRadius: acceptBtnStyle.borderRadius || 0,
         shadow: acceptBtnStyle.shadow == null ? false : acceptBtnStyle.shadow
       },
       cancelBtnStyle: {
-        backgroundColor: cancelBtnStyle.backgroundColor || "#ffffff",
-        hoverBackgroundColor: cancelBtnStyle.backgroundColor || "#ffffff",
-        textColor: cancelBtnStyle.textColor || mainColor,
+        backgroundColor: cancelBtnStyle.backgroundColor || "#eeeeee",
+        hoverBackgroundColor: cancelBtnStyle.hoverBackgroundColor || "#cccccc",
+        textColor: cancelBtnStyle.textColor || shadeHexColor(mainColor, 0.2),
         hoverTextColor: cancelBtnStyle.hoverTextColor || mainColor,
         fontSize: cancelBtnStyle.fontSize || "16",
         fontWeight: cancelBtnStyle.fontWeight || "normal",
         border: cancelBtnStyle.border || 0,
-        borderColor: cancelBtnStyle.borderColor || mainColor,
-        borderRadius: cancelBtnStyle.borderRadius || 3,
+        borderColor: cancelBtnStyle.borderColor || "#eeeeee",
         shadow: cancelBtnStyle.shadow == null ? false : cancelBtnStyle.shadow
       }
     };
   }
 
-  function getFontFamily$1(font) {
-    switch (font) {
-      case 'ARIAL':
-        return 'Helvetica, Arial, sans-serif';
-
-      case 'TAHOMA':
-        return 'Tahoma, sans-serif';
-
-      case 'VERDANA':
-        return 'Verdana, sans-serif';
-
-      case 'GEORGIA':
-        return 'Georgia, Times, serif';
-
-      case 'TIMES':
-        return '"Times New Roman", Times, serif';
-
-      case 'COURIER':
-        return '"Courier New", Courier, monospace';
-    }
-
-    return 'inherit';
-  }
-
-  //import { deepCopy, mergeRecursive } from "../../utils";
-  function showBannerPromt(appSettings) {
+  function showBannerPromt(appSettings, isPreview) {
     var container = document.createElement("div");
     container.className = "dengage-push-perm-banner";
     container.id = "dengage-push-perm-banner";
@@ -354,44 +319,37 @@
     container.style.top = "0px";
     container.style.left = "0px";
     container.style.zIndex = "100000";
-    container.innerHTML = getBannerHtml();
     document.body.appendChild(container);
 
-    if (appSettings.slideSettings.showAnimation) {
+    if (!isPreview) {
       container.style.transition = "top 1s linear";
     }
 
-    container.innerHTML = generateSlideHtml$1(appSettings);
+    container.innerHTML = generateBannerHtml(appSettings);
     document.body.appendChild(container);
     setTimeout(function () {
       container.style.top = "0px";
     }, 1);
     return {
       onAccept: function onAccept(callback) {
-        var btns = container.querySelectorAll('.dn-slide-accept-btn');
-
-        for (var i = 0; i < btns.length; i++) {
-          btns[i].addEventListener("click", function () {
-            container.style.top = "-260px";
-            callback();
-            setTimeout(function () {
-              document.body.removeChild(container);
-            }, 1000);
-          });
-        }
+        var btn = container.querySelector('.dn-banner-accept-btn');
+        btn.addEventListener("click", function () {
+          container.style.top = "-260px";
+          callback();
+          setTimeout(function () {
+            document.body.removeChild(container);
+          }, 1000);
+        });
       },
       onDeny: function onDeny(callback) {
-        var btns = container.querySelectorAll('.dn-slide-deny-btn');
-
-        for (var i = 0; i < btns.length; i++) {
-          btns[i].addEventListener("click", function () {
-            container.style.top = "-260px";
-            callback();
-            setTimeout(function () {
-              document.body.removeChild(container);
-            }, 1000);
-          });
-        }
+        var btn = container.querySelectorAll('.dn-banner-deny-btn');
+        btn.addEventListener("click", function () {
+          container.style.top = "-260px";
+          callback();
+          setTimeout(function () {
+            document.body.removeChild(container);
+          }, 1000);
+        });
       }
     };
   }
@@ -428,20 +386,86 @@
     }
   }
 
+  function toInt(input) {
+    if (typeof input == 'number') {
+      return input;
+    }
+
+    if (typeof input == 'string') {
+      return input === '' ? 0 : parseInt(input);
+    }
+
+    return 0;
+  }
+  /*autoShowSettings: {
+      delay: 0, //second (session bazlı)
+      promptAfterXVisits: 0,
+      repromptAfterXMinutes: 0, //minutes
+      denyWaitTime: 0, //minutes
+  }*/
+
+
   function start(appSettings, grantedCallback) {
-    showPrompt(appSettings, grantedCallback);
+    var autoShowSettings = appSettings.autoShowSettings;
+    var sessionStartTime = toInt(sessionStorage.getItem('dengage_session_start'));
+
+    if (sessionStartTime) {
+      sessionStartTime = new Date(sessionStartTime);
+    } else {
+      sessionStartTime = new Date();
+      sessionStorage.setItem('dengage_session_start', sessionStartTime.valueOf() + '');
+    }
+
+    var now = new Date();
+
+    var setPrompt = function setPrompt() {
+      var delay = appSettings.delay * 1000;
+      var passedTime = now.valueOf() - sessionStartTime.valueOf();
+      var waitTime = delay - passedTime;
+      waitTime = waitTime > 0 ? waitTime : 0;
+      setTimeout(function () {
+        showPrompt(appSettings, grantedCallback);
+      }, waitTime);
+    };
+
+    var visitCount = toInt(localStorage.getItem('dengage_visit_count'));
+    localStorage.setItem('dengage_visit_count', visitCount + 1);
+
+    if (autoShowSettings.promptAfterXVisits <= visitCount) {
+      var lastPromptAction = localStorage.getItem('dengage_webpush_last_a') || '';
+      var lastPromptDate = toInt(localStorage.getItem('dengage_webpush_last_d'));
+      lastPromptDate = new Date(lastPromptDate);
+      var denyWaitTime = toInt(appSettings.denyWaitTime) * 60 * 1000;
+      var denyWaitUntil = new Date(lastPromptDate.valueOf() + denyWaitTime);
+      var repromptWaitTime = toInt(appSettings.repromptAfterXMinutes);
+      var repromptWaitUntil = new Date(lastPromptDate.valueOf() + repromptWaitTime);
+
+      if (lastPromptAction == 'denied') {
+        if (function (now) {
+          return denyWaitUntil;
+        }) {
+          setPrompt();
+        }
+      } else {
+        if (function (now) {
+          return repromptWaitUntil;
+        }) {
+          setPrompt();
+        }
+      }
+    }
   }
 
   var firebaseConfig = {
-    apiKey: "AIzaSyDbzYdx1P-_2QBUZbt8d9Zexb6Fk8fugZ8",
-    projectId: "webpush-deneme",
-    messagingSenderId: "992812112924",
-    appId: "1:992812112924:web:4cc16aaa4afdefb94c13d9"
+    apiKey: "##FIREBASE_API_KEY##",
+    projectId: "##FIREBASE_PROJECT_ID##",
+    messagingSenderId: "##FIREBASE_SENDER_ID##",
+    appId: "##FIREBASE_APP_ID##"
   };
 
   function sendSubscription(token) {
     var data = {
-      "appAlias": "muhammed-wh.github.io",
+      "appAlias": "##APP_ALIAS##",
       "token": token,
       "contactKey": "",
       "permission": true,
@@ -450,7 +474,7 @@
       "appVersion": "",
       "sdkVersion": "0.1"
     };
-    var request = fetch('https://pushdev.dengage.com/api/mobile/subscription', {
+    var request = fetch('https://##DN_PUSH_API_DOMAIN##/api/mobile/subscription', {
       method: 'POST',
       // *GET, POST, PUT, DELETE, etc.
       mode: 'cors',
@@ -517,7 +541,7 @@
     }
   }
 
-  var appSettings = JSON.parse('{"name":"muhammed-wh.github.io","siteUrl":"https://muhammed-wh.github.io","defaultIconUrl":"https://www.materialui.co/materialIcons/action/check_circle_grey_192x192.png","selectedPrompt":"SLIDE","autoShow":false,"autoShowSettings":{"delay":0,"promptAfterXVisits":0,"repromptAfterXMinutes":0,"denyWaitTime":0},"slideSettings":{"location":"TOP_CENTER","theme":"BOTTOM_BTNS","fixed":false,"showIcon":true,"mainColor":"#1165f1","showTitle":false,"title":"","text":"We\'d like to show you notifications for the latest news and updates.","acceptBtnText":"Allow","cancelBtnText":"No Thanks","advancedOptions":false,"details":null},"bannerSettings":{"location":"BOTTOM","theme":"DEFAULT","fixed":true,"showIcon":true,"mainColor":"#333333","text":"","acceptBtnText":"Enable","advancedOptions":false,"details":{"backgroundColor":"","fontFamily":"","border":0,"borderColor":"","shadow":false,"textSyle":{"textColor":"#333333","fontSize":"","fontWeight":""},"acceptBtnStyle":{"backgroundColor":"","hoverBackgroundColor":"","textColor":"#333333","fontSize":"","fontWeight":"","border":0,"borderColor":"","borderRadius":0,"shadow":false},"cancelBtnStyle":{"backgroundColor":"","hoverBackgroundColor":"","textColor":"#333333","hoverTextColor":"","fontSize":"","fontWeight":"","border":0,"borderColor":"","shadow":false}}},"bellSettings":{"size":"MEDIUM","location":"RIGHT","mainColor":"#1165f1","accentColor":"#333333","hideIfSubscribed":false,"nonSubscriberTooltip":"","blockedSubscriberTooltip":"","subscribedTooltip":"","afterSubscriptionText":"","unsubscribeText":"","dialogTitle":"","subscribeBtnText":"","unsubscribeBtnText":"","unblockNotificationText":"","unblockGuideText":"","bottomOffset":0,"leftOffset":0,"rightOffset":0,"advancedOptions":false},"welcomeNotification":{"enabled":false,"title":"","message":"","link":""}}');
+  var appSettings = JSON.parse('##APP_PARAMETERS##');
 
   if (isBrowserSupported()) {
     window.addEventListener('load', function () {
