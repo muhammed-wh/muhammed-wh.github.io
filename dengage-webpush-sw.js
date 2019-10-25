@@ -20,25 +20,20 @@
     var data = payload.data;
     var title = data.title;
     var options = {
-      body: data.message
-      /*image: data.mediaUrl,
+      body: data.message,
+      image: data.mediaUrl,
       data: {
         targetUrl: data.targetUrl,
         messageId: data.messageId,
-        messageDetails: data.messageDetails,
-      },*/
-
+        messageDetails: data.messageDetails
+      }
     };
     return self.registration.showNotification(title, options);
   });
-  /*self.addEventListener('notificationclick', function(event) {
+  self.addEventListener('notificationclick', function (event) {
     event.notification.close();
-    event.waitUntil(
-      clients.openWindow(event.notification.data.targetUrl)
-    );
-
-  });*/
-
+    event.waitUntil(clients.openWindow(event.notification.data.targetUrl));
+  });
   /*function sendOpen(token) {
     var data = {
         "appAlias": "muhammed-wh.github.io",
