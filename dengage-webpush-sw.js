@@ -16,19 +16,20 @@
   var fb = firebase.initializeApp(firebaseConfig);
   var messaging = fb.messaging();
   messaging.setBackgroundMessageHandler(function (payload) {
-    console.log("[dengage-webpush-sw.js] Received background message ", payload); // Customize notification here
-
-    var notificationTitle = payload.data.title;
-    var notificationOptions = {
+    console.log("[dengage-webpush-sw.js] Received background message ", payload);
+    var title = payload.data.title;
+    var mediaUrl = payload.data.mediaUrl;
+    var targetUrl = payload.data.targetUrl;
+    var options = {
       body: payload.data.message,
-      image: payload.data.mediaUrl,
+      image: mediaUrl,
       data: {
-        targetUrl: payload.data.targetUrl,
+        targetUrl: targetUrl,
         messageId: payload.data.messageId,
         messageDetails: payload.data.messageDetails
       }
     };
-    return self.registration.showNotification(notificationTitle, notificationOptions);
+    return self.registration.showNotification(title, options);
   });
   self.addEventListener('notificationclick', function (event) {
     event.notification.close();
