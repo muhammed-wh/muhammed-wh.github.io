@@ -500,7 +500,7 @@
       credentials: 'omit',
       // include, *same-origin, omit
       headers: {
-        'Content-Type': 'plain/text'
+        'Content-Type': 'text/plain'
       },
       redirect: 'follow',
       // manual, *follow, error
