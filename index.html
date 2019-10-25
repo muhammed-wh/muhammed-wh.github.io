@@ -7,20 +7,40 @@
 	<!--<script src="https://appdev.dengage.com/push/sdk/3/b27bee07-ee71-e2c5-6fe2-af39af12e0ee.js" async=""></script>-->s
 
 	<script>
+function getTableHtml(components) {
+	var html = '<table>';
+	for (let i = 0; i < components.length; i++) {
+		const c = components[i];
+		html += `
+		<tr>
+			<td>${c.key}</td>
+			<td>${c.value}</td>
+		</tr>
+		`
+	}
+	html += '</table>';
+	return html;
+}
+	
 function getFingerprint() {
 	var options = {
 		fontsFlash: false,
 		extraComponents : [
-			{
+			/*{
 				key: 'customKey', 
 				getData: function (done, options) {
 					done('infos ...')
 				},
-			},
+			},*/
 		]
 	};
 	Fingerprint2.get(options, function (components) {
 		console.log(components) // an array of components: {key: ..., value: ...}
+		var values = components.map(function (component) { return component.value })
+		var murmur = Fingerprint2.x64hash128(values.join(''), 31)
+		document.getElementById('finger_print').innerHTML = getTableHtml(components);
+		document.getElementById('hash').innerHTML = murmur;
+		
 	})
 }
 
@@ -38,6 +58,11 @@ window.onload = function() {
 	</script>
 </head>
 <body>
-hello naber
+	<div id="finger_print">
+		
+	</div>
+	<div id="hash">
+		
+	</div>
 </body>
 </html>
