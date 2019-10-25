@@ -16,25 +16,29 @@
   var fb = firebase.initializeApp(firebaseConfig);
   var messaging = fb.messaging();
   messaging.setBackgroundMessageHandler(function (payload) {
-    console.log("[dengage-webpush-sw.js] Received background message ", payload);
-    var title = payload.data.title;
-    var mediaUrl = payload.data.mediaUrl;
-    var targetUrl = payload.data.targetUrl;
+    console.log("[dengage-webpush-sw.js] Received message ", payload);
+    var data = payload.data;
+    var title = data.title;
     var options = {
-      body: payload.data.message,
-      image: mediaUrl,
+      body: data.message
+      /*image: data.mediaUrl,
       data: {
-        targetUrl: targetUrl,
-        messageId: payload.data.messageId,
-        messageDetails: payload.data.messageDetails
-      }
+        targetUrl: data.targetUrl,
+        messageId: data.messageId,
+        messageDetails: data.messageDetails,
+      },*/
+
     };
     return self.registration.showNotification(title, options);
   });
-  self.addEventListener('notificationclick', function (event) {
+  /*self.addEventListener('notificationclick', function(event) {
     event.notification.close();
-    event.waitUntil(clients.openWindow(event.notification.data.targetUrl));
-  });
+    event.waitUntil(
+      clients.openWindow(event.notification.data.targetUrl)
+    );
+
+  });*/
+
   /*function sendOpen(token) {
     var data = {
         "appAlias": "muhammed-wh.github.io",
