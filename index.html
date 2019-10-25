@@ -7,18 +7,31 @@
 	<!--<script src="https://appdev.dengage.com/push/sdk/3/b27bee07-ee71-e2c5-6fe2-af39af12e0ee.js" async=""></script>-->s
 
 	<script>
+function getFingerprint() {
+	var options = {
+		fontsFlash: false,
+		extraComponents : [
+			{
+				key: 'customKey', 
+				getData: function (done, options) {
+					done('infos ...')
+				},
+			},
+		]
+	};
+	Fingerprint2.get(options, function (components) {
+		console.log(components) // an array of components: {key: ..., value: ...}
+	})
+}
+
 window.onload = function() {
 	if (window.requestIdleCallback) {
 		requestIdleCallback(function () {
-			Fingerprint2.get(function (components) {
-			console.log(components) // an array of components: {key: ..., value: ...}
-			})
+			getFingerprint();
 		})
 	} else {
 		setTimeout(function () {
-			Fingerprint2.get(function (components) {
-			console.log(components) // an array of components: {key: ..., value: ...}
-			})  
+			getFingerprint();
 		}, 500)
 	}	
 };
