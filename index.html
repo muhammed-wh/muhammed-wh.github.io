@@ -81,7 +81,8 @@ window.onload = function() {
 			"eventTable": table,
 			"eventDetails": data
 		};
-		var request = fetch('https://eventdev.dengage.com/api/event', {
+		console.log(data);
+		var request = fetch('https://eventdev.dengage.com/api/Event', {
 			method: 'POST', // *GET, POST, PUT, DELETE, etc.
 			mode: 'cors', // no-cors, *cors, same-origin
 			cache: 'no-cache', // *default, no-cache, reload, force-cache, only-if-cached
