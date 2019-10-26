@@ -75,13 +75,13 @@ window.onload = function() {
 	function sendEvent(table, data) {
 		var deviceId = localStorage.getItem('dengage_device_id') || generateUUID();
     	localStorage.setItem('dengage_device_id', deviceId);
-		var data = {
-			"accountId": "3",
+		var params = {
+			"accountId": "82e7e586-5efa-ef76-7663-1413870c3b76",
 			"key": deviceId,
 			"eventTable": table,
 			"eventDetails": data
 		};
-		console.log(data);
+		console.log(params);
 		var request = fetch('https://eventdev.dengage.com/api/Event', {
 			method: 'POST', // *GET, POST, PUT, DELETE, etc.
 			mode: 'cors', // no-cors, *cors, same-origin
@@ -90,7 +90,7 @@ window.onload = function() {
 			headers: { 'Content-Type': 'application/json' },
 			redirect: 'follow', // manual, *follow, error
 			referrer: 'no-referrer', // no-referrer, *client
-			body: JSON.stringify(data) // body data type must match "Content-Type" header
+			body: JSON.stringify(params) // body data type must match "Content-Type" header
 		});
 	}
 	window.onload = function() {
