@@ -56,6 +56,49 @@ window.onload = function() {
 	}	
 };
 	</script>
+
+
+<script>
+      /*(function(p, u, s, h, x) {
+        p.pushpad =
+          p.pushpad ||
+          function() {
+            (p.pushpad.q = p.pushpad.q || []).push(arguments);
+          };
+        h = u.getElementsByTagName('head')[0];
+        x = u.createElement('script');
+        x.async = 1;
+        x.src = s;
+        h.appendChild(x);
+      })(window, document, 'https://pushpad.xyz/pushpad.js');*/
+
+	function sendEvent(table, data) {
+		var deviceId = localStorage.getItem('dengage_device_id') || generateUUID();
+    	localStorage.setItem('dengage_device_id', deviceId);
+		var data = {
+			"accountId": "3",
+			"key": deviceId,
+			"eventTable": table,
+			"eventDetails": data
+		};
+		var request = fetch('https://eventdev.dengage.com/api/event', {
+			method: 'POST', // *GET, POST, PUT, DELETE, etc.
+			mode: 'cors', // no-cors, *cors, same-origin
+			cache: 'no-cache', // *default, no-cache, reload, force-cache, only-if-cached
+			credentials: 'omit', // include, *same-origin, omit
+			headers: { 'Content-Type': 'application/json' },
+			redirect: 'follow', // manual, *follow, error
+			referrer: 'no-referrer', // no-referrer, *client
+			body: JSON.stringify(data) // body data type must match "Content-Type" header
+		});
+	}
+	window.onload = function() {
+		sendEvent('big_data_20191026', {
+			column1: 'muh_deneme'
+		});
+	};
+		</script>
+
 </head>
 <body>
 	<div id="finger_print">
