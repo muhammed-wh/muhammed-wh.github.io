@@ -38,7 +38,7 @@
 
   function sendOpen(messageId, messageDetails) {
     var data = {
-      "appAlias": "muhammed-wh.github.io",
+      "integrationKey": "GylYPy9XfZj0xir63kYLbpqqUTYZ2DfY629Tc_p_l_XlF3M6DJDzaE_s_l_pvwU8UKkKe4RN1lcUzkPnjB_p_l_IRnHz3MsWiQmEFbBu0sHLmKY96jwadN3CAAEJjRU7RlYaaZb0GBLT",
       "messageId": messageId,
       "messageDetails": messageDetails
     };

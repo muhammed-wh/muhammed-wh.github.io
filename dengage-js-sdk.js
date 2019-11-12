@@ -478,12 +478,12 @@
   function sendSubscription(token) {
     getDeviceId().then(function (deviceId) {
       var data = {
-        "integrationKey": "##INTEGRATION_KEY##",
+        "integrationKey": "GylYPy9XfZj0xir63kYLbpqqUTYZ2DfY629Tc_p_l_XlF3M6DJDzaE_s_l_pvwU8UKkKe4RN1lcUzkPnjB_p_l_IRnHz3MsWiQmEFbBu0sHLmKY96jwadN3CAAEJjRU7RlYaaZb0GBLT",
         "token": token,
         "contactKey": getContactKey(),
         "permission": true,
         "udid": deviceId,
-        "advertisingId": "string",
+        "advertisingId": "",
         "carrierId": null,
         "appVersion": null,
         "trackingPermission": true
