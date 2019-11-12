@@ -342,7 +342,7 @@
         });
       },
       onDeny: function onDeny(callback) {
-        var btn = container.querySelectorAll('.dn-banner-deny-btn');
+        var btn = container.querySelector('.dn-banner-deny-btn');
         btn.addEventListener("click", function () {
           container.style.top = "-260px";
           callback();
@@ -545,16 +545,16 @@
         localStorage.setItem('dengage_webpush_last_d', new Date().valueOf() + '');
         navigator.serviceWorker.register('/dengage-webpush-sw.js').then(function (registration) {
           messaging.useServiceWorker(registration);
-        });
-        messaging.getToken().then(function (currentToken) {
-          if (currentToken) {
-            console.log('Token: ' + currentToken);
-            sendSubscription(currentToken);
-          } else {
-            console.log('empty token');
-          }
-        }).catch(function (err) {
-          console.log('An error occurred while retrieving token. ', err);
+          messaging.getToken().then(function (currentToken) {
+            if (currentToken) {
+              console.log('Token: ' + currentToken);
+              sendSubscription(currentToken);
+            } else {
+              console.log('empty token');
+            }
+          }).catch(function (err) {
+            console.log('An error occurred while retrieving token. ', err);
+          });
         });
       };
 

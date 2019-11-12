@@ -44,7 +44,7 @@ function getFingerprint() {
 	})
 }
 
-window.onload = function() {
+/*window.onload = function() {
 	if (window.requestIdleCallback) {
 		requestIdleCallback(function () {
 			getFingerprint();
@@ -54,7 +54,7 @@ window.onload = function() {
 			getFingerprint();
 		}, 500)
 	}	
-};
+};*/
 	</script>
 
 
@@ -93,13 +93,18 @@ window.onload = function() {
 			body: JSON.stringify(params) // body data type must match "Content-Type" header
 		});
 	}
-	window.onload = function() {
+	/*window.onload = function() {
 		sendEvent('big_data_20191026', {
 			column1: 'muh_deneme'
 		});
-	};
-		</script>
+	};*/
 
+		</script>
+<script>
+	!function(e,a,n,d,g){e.dengage=e.dengage||function(){(e.dengage.q=e.dengage.q||[]).push(arguments)},d=a.getElementsByTagName("head")[0],(g=a.createElement("script")).async=1,g.src="dengage-js-sdk.js",d.appendChild(g)}(window,document);
+  
+	dengage('initialize');
+  </script>
 </head>
 <body>
 	<div id="finger_print">
