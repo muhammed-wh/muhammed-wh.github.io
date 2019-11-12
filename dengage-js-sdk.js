@@ -367,8 +367,7 @@
       }
     });
   }
-
-  function showPrompt(appSettings, grantedCallback, deniedCallback) {
+  function showCustomPrompt(appSettings, grantedCallback, deniedCallback) {
     if (appSettings.selectedPrompt == 'SLIDE') {
       var slidePrompt = showSlidePromt(appSettings);
       slidePrompt.onAccept(function () {
@@ -388,6 +387,9 @@
     } else {
       showNativePrompt(grantedCallback);
     }
+
+    localStorage.setItem('dengage_webpush_last_a', 'ask');
+    localStorage.setItem('dengage_webpush_last_d', new Date().valueOf() + '');
   }
 
   function toInt(input) {
@@ -409,7 +411,7 @@
   }*/
 
 
-  function start(appSettings, grantedCallback, deniedCallback) {
+  function startAutoPrompt(appSettings, grantedCallback, deniedCallback) {
     var autoShowSettings = appSettings.autoShowSettings;
     var sessionStartTime = toInt(sessionStorage.getItem('dengage_session_start'));
 
@@ -428,9 +430,7 @@
       var waitTime = delay - passedTime;
       waitTime = waitTime > 0 ? waitTime : 0;
       setTimeout(function () {
-        showPrompt(appSettings, grantedCallback, deniedCallback);
-        localStorage.setItem('dengage_webpush_last_a', 'ask');
-        localStorage.setItem('dengage_webpush_last_d', new Date().valueOf() + '');
+        showCustomPrompt(appSettings, grantedCallback, deniedCallback);
       }, waitTime);
     };
 
@@ -447,19 +447,67 @@
       var repromptWaitUntil = new Date(lastPromptDate.valueOf() + repromptWaitTime);
 
       if (lastPromptAction == 'denied') {
-        if (function (now) {
-          return denyWaitUntil;
-        }) {
+        if (now >= denyWaitUntil) {
           setPrompt();
         }
       } else {
-        if (function (now) {
-          return repromptWaitUntil;
-        }) {
+        if (now >= repromptWaitUntil) {
           setPrompt();
         }
       }
     }
+  }
+
+  function generateUUID() {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+      var r = Math.random() * 16 | 0,
+          v = c == 'x' ? r : r & 0x3 | 0x8;
+      return v.toString(16).toUpperCase();
+    });
+  }
+
+  function getDeviceId() {
+    var deviceId = localStorage.getItem('dengage_device_id') || generateUUID();
+    localStorage.setItem('dengage_device_id', deviceId);
+    return Promise.resolve(deviceId);
+  }
+  function getContactKey() {
+    return 'contact_key';
+  }
+
+  function sendSubscription(token) {
+    getDeviceId().then(function (deviceId) {
+      var data = {
+        "integrationKey": "##INTEGRATION_KEY##",
+        "token": token,
+        "contactKey": getContactKey(),
+        "permission": true,
+        "udid": deviceId,
+        "advertisingId": "string",
+        "carrierId": null,
+        "appVersion": null,
+        "trackingPermission": true
+      };
+      var request = fetch('https://pushdev.dengage.com/api/web/subscription', {
+        method: 'POST',
+        // *GET, POST, PUT, DELETE, etc.
+        mode: 'cors',
+        // no-cors, *cors, same-origin
+        cache: 'no-cache',
+        // *default, no-cache, reload, force-cache, only-if-cached
+        credentials: 'omit',
+        // include, *same-origin, omit
+        headers: {
+          'Content-Type': 'text/plain'
+        },
+        redirect: 'follow',
+        // manual, *follow, error
+        referrer: 'no-referrer',
+        // no-referrer, *client
+        body: JSON.stringify(data) // body data type must match "Content-Type" header
+
+      });
+    });
   }
 
   var firebaseConfig = {
@@ -468,49 +516,6 @@
     messagingSenderId: "992812112924",
     appId: "1:992812112924:web:4cc16aaa4afdefb94c13d9"
   };
-
-  function sendSubscription(token) {
-    function generateUUID() {
-      return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
-        var r = Math.random() * 16 | 0,
-            v = c == 'x' ? r : r & 0x3 | 0x8;
-        return v.toString(16).toUpperCase();
-      });
-    }
-
-    var deviceId = localStorage.getItem('dengage_device_id') || generateUUID();
-    localStorage.setItem('dengage_device_id', deviceId);
-    var data = {
-      "appAlias": "muhammed-wh.github.io",
-      "token": token,
-      "contactKey": "",
-      "permission": true,
-      "udid": deviceId + '',
-      "carrierId": "",
-      "appVersion": "",
-      "sdkVersion": "0.1"
-    };
-    var request = fetch('https://pushdev.dengage.com/api/web/subscription', {
-      method: 'POST',
-      // *GET, POST, PUT, DELETE, etc.
-      mode: 'cors',
-      // no-cors, *cors, same-origin
-      cache: 'no-cache',
-      // *default, no-cache, reload, force-cache, only-if-cached
-      credentials: 'omit',
-      // include, *same-origin, omit
-      headers: {
-        'Content-Type': 'text/plain'
-      },
-      redirect: 'follow',
-      // manual, *follow, error
-      referrer: 'no-referrer',
-      // no-referrer, *client
-      body: JSON.stringify(data) // body data type must match "Content-Type" header
-
-    });
-  }
-
   function isBrowserSupported() {
     if ("serviceWorker" in navigator && "PushManager" in window) {
       return true;
@@ -518,7 +523,7 @@
 
     return false;
   }
-  function start$1(appSettings) {
+  function start(appSettings) {
     var fb = firebase.initializeApp(firebaseConfig);
     var messaging = fb.messaging();
     var currentPermission = Notification.permission;
@@ -527,16 +532,17 @@
       console.log('Notification permission already granted.');
       navigator.serviceWorker.register('/dengage-webpush-sw.js').then(function (registration) {
         messaging.useServiceWorker(registration);
-      });
-      messaging.getToken().then(function (currentToken) {
-        if (currentToken) {
-          console.log('Token: ' + currentToken);
-          sendSubscription(currentToken); //var request = window.indexedDB.open("MyTestDatabase", 3);
-        } else {
-          console.log('empty token');
-        }
-      }).catch(function (err) {
-        console.log('An error occurred while retrieving token. ', err);
+        messaging.getToken().then(function (currentToken) {
+          if (currentToken) {
+            console.log('Token: ' + currentToken);
+            localStorage.setItem('dengage_webpush_token', currentToken);
+            sendSubscription(currentToken);
+          } else {
+            console.log('empty token');
+          }
+        }).catch(function (err) {
+          console.log('An error occurred while retrieving token. ', err);
+        });
       });
     } else if (currentPermission == 'default') {
       var onPermissionGranted = function onPermissionGranted() {
@@ -564,18 +570,110 @@
         localStorage.setItem('dengage_webpush_last_d', new Date().valueOf() + '');
       };
 
-      start(appSettings, onPermissionGranted, onPermissionDenied);
+      startAutoPrompt(appSettings, onPermissionGranted, onPermissionDenied);
     } else {
       console.log('Notification permission denied');
     }
   }
 
-  var appSettings = JSON.parse('{"name":"muhammed-wh.github.io","siteUrl":"https://muhammed-wh.github.io","defaultIconUrl":"https://www.materialui.co/materialIcons/action/check_circle_grey_192x192.png","selectedPrompt":"SLIDE","autoShow":false,"autoShowSettings":{"delay":10,"promptAfterXVisits":3,"repromptAfterXMinutes":5,"denyWaitTime":10},"slideSettings":{"location":"TOP_CENTER","theme":"BOTTOM_BTNS","fixed":false,"showIcon":true,"mainColor":"#1165f1","showTitle":false,"title":"","text":"We\'d like to show you notifications for the latest news and updates.","acceptBtnText":"Allow","cancelBtnText":"No Thanks","advancedOptions":false,"details":null},"bannerSettings":{"location":"BOTTOM","theme":"DEFAULT","fixed":true,"showIcon":true,"mainColor":"#333333","text":"","acceptBtnText":"Enable","advancedOptions":false,"details":{"backgroundColor":"","fontFamily":"","border":0,"borderColor":"","shadow":false,"textSyle":{"textColor":"#333333","fontSize":"","fontWeight":""},"acceptBtnStyle":{"backgroundColor":"","hoverBackgroundColor":"","textColor":"#333333","fontSize":"","fontWeight":"","border":0,"borderColor":"","borderRadius":0,"shadow":false},"cancelBtnStyle":{"backgroundColor":"","hoverBackgroundColor":"","textColor":"#333333","hoverTextColor":"","fontSize":"","fontWeight":"","border":0,"borderColor":"","shadow":false}}},"bellSettings":{"size":"MEDIUM","location":"RIGHT","mainColor":"#1165f1","accentColor":"#333333","hideIfSubscribed":false,"nonSubscriberTooltip":"","blockedSubscriberTooltip":"","subscribedTooltip":"","afterSubscriptionText":"","unsubscribeText":"","dialogTitle":"","subscribeBtnText":"","unsubscribeBtnText":"","unblockNotificationText":"","unblockGuideText":"","bottomOffset":0,"leftOffset":0,"rightOffset":0,"advancedOptions":false},"welcomeNotification":{"enabled":false,"title":"","message":"","link":""}}');
+  function sendEvent(table, key, data) {
+    var params = {
+      "accountId": "82e7e586-5efa-ef76-7663-1413870c3b76",
+      "key": key,
+      "eventTable": table,
+      "eventDetails": data
+    };
+    console.log(params);
+    var request = fetch('https://eventdev.dengage.com/api/web/event', {
+      method: 'POST',
+      // *GET, POST, PUT, DELETE, etc.
+      mode: 'cors',
+      // no-cors, *cors, same-origin
+      cache: 'no-cache',
+      // *default, no-cache, reload, force-cache, only-if-cached
+      credentials: 'omit',
+      // include, *same-origin, omit
+      headers: {
+        'Content-Type': 'text/plain'
+      },
+      redirect: 'follow',
+      // manual, *follow, error
+      referrer: 'no-referrer',
+      // no-referrer, *client
+      body: JSON.stringify(params) // body data type must match "Content-Type" header
 
-  if (isBrowserSupported()) {
-    window.addEventListener('load', function () {
-      start$1(appSettings);
     });
   }
+
+  var appSettings = JSON.parse('{"name":"muhammed-wh.github.io","siteUrl":"https://muhammed-wh.github.io","defaultIconUrl":"https://www.materialui.co/materialIcons/action/check_circle_grey_192x192.png","selectedPrompt":"SLIDE","autoShow":false,"autoShowSettings":{"delay":10,"promptAfterXVisits":3,"repromptAfterXMinutes":5,"denyWaitTime":10},"slideSettings":{"location":"TOP_CENTER","theme":"BOTTOM_BTNS","fixed":false,"showIcon":true,"mainColor":"#1165f1","showTitle":false,"title":"","text":"We\'d like to show you notifications for the latest news and updates.","acceptBtnText":"Allow","cancelBtnText":"No Thanks","advancedOptions":false,"details":null},"bannerSettings":{"location":"BOTTOM","theme":"DEFAULT","fixed":true,"showIcon":true,"mainColor":"#333333","text":"","acceptBtnText":"Enable","advancedOptions":false,"details":{"backgroundColor":"","fontFamily":"","border":0,"borderColor":"","shadow":false,"textSyle":{"textColor":"#333333","fontSize":"","fontWeight":""},"acceptBtnStyle":{"backgroundColor":"","hoverBackgroundColor":"","textColor":"#333333","fontSize":"","fontWeight":"","border":0,"borderColor":"","borderRadius":0,"shadow":false},"cancelBtnStyle":{"backgroundColor":"","hoverBackgroundColor":"","textColor":"#333333","hoverTextColor":"","fontSize":"","fontWeight":"","border":0,"borderColor":"","shadow":false}}},"bellSettings":{"size":"MEDIUM","location":"RIGHT","mainColor":"#1165f1","accentColor":"#333333","hideIfSubscribed":false,"nonSubscriberTooltip":"","blockedSubscriberTooltip":"","subscribedTooltip":"","afterSubscriptionText":"","unsubscribeText":"","dialogTitle":"","subscribeBtnText":"","unsubscribeBtnText":"","unblockNotificationText":"","unblockGuideText":"","bottomOffset":0,"leftOffset":0,"rightOffset":0,"advancedOptions":false},"welcomeNotification":{"enabled":false,"title":"","message":"","link":""}}');
+  var publicMethods = {
+    initialize: function initialize() {
+      if (isBrowserSupported()) {
+        window.addEventListener('load', function () {
+          start(appSettings);
+        });
+      }
+    },
+
+    /**************** Web Push ********************/
+    //TODO: callback eklenecek
+    showNativePrompt: showNativePrompt,
+    //TODO: callback eklenecek
+    showCustomPrompt: showCustomPrompt,
+    getNotificationPermission: function getNotificationPermission() {
+      //TODO: callback eklenecek
+      return Notification.permission;
+    },
+    getToken: function getToken() {
+      //TODO: callback eklenecek
+      return localStorage.getItem('dengage_webpush_token');
+    },
+    isPushNotificationsSupported: isBrowserSupported,
+
+    /**************** Event Collection ********************/
+    provideUserConsent: function provideUserConsent() {//TODO
+    },
+    sendDeviceEvent: function sendDeviceEvent(table, data) {
+      //TODO: callback eklenecek
+      getDeviceId().then(function (deviceId) {
+        sendEvent(table, deviceId, data);
+      });
+    },
+    sendCustomEvent: function sendCustomEvent(table, key, data) {
+      //TODO: callback eklenecek
+      sendEvent(table, key, data);
+    },
+    setContactKey: function setContactKey(val) {
+    },
+    getContactKey: function getContactKey$1() {
+      //TODO: callback function şeklinde yapılacak
+      return getContactKey();
+    }
+  }; //TODO: event handler'lar yapılacak
+
+  var q = window.dengage.q || [];
+
+  window.dengage = function () {
+    publicMethods[arguments[0]].apply(this, Array.prototype.slice.call(arguments, 1));
+  };
+
+  q.forEach(function (command) {
+    //TODO asenkron olarak bekleyerek çalışmalı
+    window.dengage.apply(this, command);
+  });
+  /*
+  (function(p, u, s, h, x) {
+    p.dengage =
+      p.dengage ||
+      function() {
+        (p.dengage.q = p.dengage.q || []).push(arguments);
+      };
+    h = u.getElementsByTagName("head")[0];
+    x = u.createElement("script");
+    x.async = 1;
+    x.src = s;
+    h.appendChild(x);
+  })(window, document, "");
+  */
 
 }(firebase));
