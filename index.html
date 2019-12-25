@@ -130,7 +130,7 @@ if ('safari' in window && 'pushNotification' in window.safari) {
 		console.log('Notification permission is default');
         // https://pushdev.dengage.com/api/safari/82e7e586-5efa-ef76-7663-1413870c3b76/
         // https://dengagesafaripushdeneme.muhammedeminem1.repl.co/
-		const url = 'https://dengagesafaripushdeneme.muhammedeminem1.repl.co/aaa';
+		const url = 'https://pushdev.dengage.com/api/safari/82e7e586-5efa-ef76-7663-1413870c3b76';
 		const userInfo = {device_id: 'emre_kutuk_1'};
 		window.safari.pushNotification.requestPermission(url, websitePushID, userInfo, safariPermissionCb);
     } else {
