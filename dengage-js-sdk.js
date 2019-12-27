@@ -891,12 +891,16 @@
         setTokenType(tokenInfo.tokenType);
         setWebSubscription(tokenInfo.webSubscription || null);
 
+        if (isFirstTime) {
+          showWellcomeNotification();
+        }
+
         callback();
-      }).then(function (err) {
+      }).catch(function (err) {
         console.log('pushClient.getTokenInfo() failed. ', err);
         callback();
       });
-    }).then(function (err) {
+    }).catch(function (err) {
       console.log('pushClient.init() failed. ', err);
       callback();
     });
@@ -918,7 +922,7 @@
       if (appSettings.autoShow) {
         var onPermissionGranted = function onPermissionGranted() {
           console.log('Notification permission granted.');
-          startPushClient(callback); //TODO: manual prompt yapılan yerlerde startPushClient çağrılmalı
+          startPushClient(callback, true); //TODO: manual prompt yapılan yerlerde startPushClient çağrılmalı
         };
 
         var onPermissionDenied = function onPermissionDenied() {
@@ -938,6 +942,23 @@
     } //TODO: pushClient.onTokenRefresh
     //TODO: onMessage
 
+  }
+
+  function showWellcomeNotification() {
+    if (appSettings.welcomeNotification.enabled) {
+      var title = appSettings.welcomeNotification.title || 'Wellcome';
+      var options = {
+        body: appSettings.welcomeNotification.message || ''
+      };
+      var notif = new Notification(title, options);
+
+      if (appSettings.welcomeNotification.link) {
+        notif.onclick = function (event) {
+          event.notification.close();
+          window.open(appSettings.welcomeNotification.link);
+        };
+      }
+    }
   }
 
   function sendEvent(table, key, data) {
