@@ -1,7 +1,7 @@
-(function (subscriptionManager) {
+(function (showWellcomeNotification) {
   'use strict';
 
-  subscriptionManager = subscriptionManager && subscriptionManager.hasOwnProperty('default') ? subscriptionManager['default'] : subscriptionManager;
+  showWellcomeNotification = showWellcomeNotification && showWellcomeNotification.hasOwnProperty('default') ? showWellcomeNotification['default'] : showWellcomeNotification;
 
   function shadeHexColor(color, percent) {
     var f = parseInt(color.slice(1), 16),
@@ -885,12 +885,12 @@
     pushClient$1.init().then(function () {
       pushClient$1.getTokenInfo().then(function (tokenInfo) {
         console.log('Token: ' + tokenInfo.token);
-        subscriptionManager.setToken(tokenInfo.token);
-        subscriptionManager.setTokenType(tokenInfo.tokenType);
-        subscriptionManager.setWebSubscription(tokenInfo.webSubscription || null);
+        sendSubscription.setToken(tokenInfo.token);
+        sendSubscription.setTokenType(tokenInfo.tokenType);
+        sendSubscription.setWebSubscription(tokenInfo.webSubscription || null);
 
         if (isFirstTime) {
-          subscriptionManager();
+          showWellcomeNotification();
         }
 
         callback();
@@ -913,9 +913,9 @@
       console.log('Notification permission already granted.');
       startPushClient(callback);
     } else if (currentPermission == 'default') {
-      subscriptionManager.setToken(null);
-      subscriptionManager.setTokenType(null);
-      subscriptionManager.setWebSubscription(null);
+      sendSubscription.setToken(null);
+      sendSubscription.setTokenType(null);
+      sendSubscription.setWebSubscription(null);
 
       if (appSettings.autoShow) {
         var onPermissionGranted = function onPermissionGranted() {
@@ -933,9 +933,9 @@
       callback();
     } else {
       console.log('Notification permission denied');
-      subscriptionManager.setToken(null);
-      subscriptionManager.setTokenType(null);
-      subscriptionManager.setWebSubscription(null);
+      sendSubscription.setToken(null);
+      sendSubscription.setTokenType(null);
+      sendSubscription.setWebSubscription(null);
       callback();
     } //TODO: pushClient.onTokenRefresh
     //TODO: onMessage
@@ -1092,4 +1092,4 @@
   })(window, document, "");
   */
 
-}(subscriptionManager));
+}(showWellcomeNotification));
