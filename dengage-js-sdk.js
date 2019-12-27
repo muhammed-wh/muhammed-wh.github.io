@@ -587,25 +587,37 @@
     return localStorage.getItem('dengage_contact_key') || null;
   }
   function setContactKey(value) {
-    localStorage.setItem('dengage_contact_key', value);
+    if (getContactKey() != value) {
+      localStorage.setItem('dengage_contact_key', value);
+      triggerSend();
+    }
   }
   function getToken() {
     return localStorage.getItem('dengage_webpush_token') || null;
   }
   function setToken(value) {
-    localStorage.setItem('dengage_webpush_token', value);
+    if (getToken() != value) {
+      localStorage.setItem('dengage_webpush_token', value);
+      triggerSend();
+    }
   }
   function getTokenType() {
     return localStorage.getItem('dengage_webpush_token_type') || null;
   }
   function setTokenType(value) {
-    localStorage.setItem('dengage_webpush_token_type', value);
+    if (getTokenType() != value) {
+      localStorage.setItem('dengage_webpush_token_type', value);
+      triggerSend();
+    }
   }
   function getWebSubscription() {
     return localStorage.getItem('dengage_webpush_sub') || null;
   }
   function setWebSubscription(value) {
-    localStorage.setItem('dengage_webpush_sub', value);
+    if (getWebSubscription() != value) {
+      localStorage.setItem('dengage_webpush_sub', value);
+      triggerSend();
+    }
   }
 
   function sendSubscription() {
