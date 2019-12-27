@@ -592,12 +592,22 @@
   function getToken() {
     return localStorage.getItem('dengage_webpush_token') || null;
   }
+  function setToken(value) {
+    localStorage.setItem('dengage_webpush_token', value);
+  }
   function getTokenType() {
     return localStorage.getItem('dengage_webpush_token_type') || null;
+  }
+  function setTokenType(value) {
+    localStorage.setItem('dengage_webpush_token_type', value);
   }
   function getWebSubscription() {
     return localStorage.getItem('dengage_webpush_sub') || null;
   }
+  function setWebSubscription(value) {
+    localStorage.setItem('dengage_webpush_sub', value);
+  }
+
   function sendSubscription() {
     getDeviceId().then(function (deviceId) {
       var data = {
@@ -861,9 +871,9 @@
     pushClient.init().then(function () {
       pushClient.getTokenInfo().then(function (tokenInfo) {
         console.log('Token: ' + tokenInfo.token);
-        sendSubscription.setToken(tokenInfo.token);
-        sendSubscription.setTokenType(tokenInfo.tokenType);
-        sendSubscription.setWebSubscription(tokenInfo.webSubscription || null);
+        setToken(tokenInfo.token);
+        setTokenType(tokenInfo.tokenType);
+        setWebSubscription(tokenInfo.webSubscription || null);
 
         callback();
       }).then(function (err) {
@@ -885,9 +895,9 @@
       console.log('Notification permission already granted.');
       startPushClient(callback);
     } else if (currentPermission == 'default') {
-      sendSubscription.setToken(null);
-      sendSubscription.setTokenType(null);
-      sendSubscription.setWebSubscription(null);
+      setToken(null);
+      setTokenType(null);
+      setWebSubscription(null);
 
       if (appSettings.autoShow) {
         var onPermissionGranted = function onPermissionGranted() {
@@ -905,9 +915,9 @@
       callback();
     } else {
       console.log('Notification permission denied');
-      sendSubscription.setToken(null);
-      sendSubscription.setTokenType(null);
-      sendSubscription.setWebSubscription(null);
+      setToken(null);
+      setTokenType(null);
+      setWebSubscription(null);
       callback();
     } //TODO: pushClient.onTokenRefresh
     //TODO: onMessage
