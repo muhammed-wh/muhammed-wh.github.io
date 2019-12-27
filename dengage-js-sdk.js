@@ -1,7 +1,5 @@
-(function (showWellcomeNotification) {
+(function () {
   'use strict';
-
-  showWellcomeNotification = showWellcomeNotification && showWellcomeNotification.hasOwnProperty('default') ? showWellcomeNotification['default'] : showWellcomeNotification;
 
   function shadeHexColor(color, percent) {
     var f = parseInt(color.slice(1), 16),
@@ -889,10 +887,6 @@
         sendSubscription.setTokenType(tokenInfo.tokenType);
         sendSubscription.setWebSubscription(tokenInfo.webSubscription || null);
 
-        if (isFirstTime) {
-          showWellcomeNotification();
-        }
-
         callback();
       }).then(function (err) {
         console.log('pushClient.getTokenInfo() failed. ', err);
@@ -920,7 +914,7 @@
       if (appSettings.autoShow) {
         var onPermissionGranted = function onPermissionGranted() {
           console.log('Notification permission granted.');
-          startPushClient(callback, true); //TODO: manual prompt yapılan yerlerde startPushClient çağrılmalı
+          startPushClient(callback); //TODO: manual prompt yapılan yerlerde startPushClient çağrılmalı
         };
 
         var onPermissionDenied = function onPermissionDenied() {
@@ -1092,4 +1086,4 @@
   })(window, document, "");
   */
 
-}(showWellcomeNotification));
+}());
