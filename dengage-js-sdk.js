@@ -493,7 +493,7 @@
   function refreshSubscription(registration) {
     return registration.pushManager.getSubscription().then(function (subscription) {
       if (subscription) {
-        webSubscription = subscription;
+        webSubscription = JSON.stringify(subscription);
         token = generateToken(subscription);
       } else {
         var options = {
@@ -501,7 +501,7 @@
           applicationServerKey: 'BJnJ_PO2DHLkWmn6ha4K4Ahwt4G7PolU7TA-w52UPT9A0eeWh4EEcT3dD9tSxwMciJDuDEc2ZbBDxBjawExj4KM'
         };
         return registration.pushManager.subscribe(options).then(function (newSubscription) {
-          webSubscription = newSubscription;
+          webSubscription = JSON.stringify(newSubscription);
           token = generateToken(newSubscription);
         }, errorLoggerRejected('pushManager.subscribe failed'));
       }
