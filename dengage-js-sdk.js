@@ -734,9 +734,31 @@
   } else {
     Object.assign(pushClient, webPushApiClient);
   }
+  /**
+   * detected
+   *      Bu client'ın desteklenip desteklenmediğini döner.
+   *      Mesela safariClient safari olup olmadığını ve push destekleyip desteklemediğini döner
+   *      Boolean döner
+   * init
+   *      servis worker register etmek ve benzeri işleri yapacak.
+   *      Bu push izni granted olduğu zaman çağrılacak. granted olmadan çağrılamaz. Çağrılırsa hata loglar
+   *      promise döner
+   * getTokenInfo
+   *      promise dönecek
+   *      {token, tokenType, webSubscription} olarak dönecek. Eğer izin yoksa null dönecek.
+   * requestPermission
+   *      Push izni soracak ve promise dönecek. String dönecek. Dönen sonuçta permission ya "granted" olacak ya da "denied"
+   * getPermission
+   *      Şu anki permission'ı döner. "granted", "denied", "default" olabilir. string dönecek
+   */
+
+
+  var pushClient$1 = {
+    pushClient: pushClient
+  };
 
   function showNativePrompt(grantedCallback, deniedCallback) {
-    pushClient.requestPermission().then(function (permission) {
+    pushClient$1.requestPermission().then(function (permission) {
       if (permission === 'granted') {
         setLocalStoragePromptResult('granted');
 
@@ -858,8 +880,8 @@
   var appSettings = JSON.parse('{"name":"muhammed-wh.github.io","siteUrl":"https://muhammed-wh.github.io","autoShow":false,"bellSettings":{"size":"MEDIUM","location":"RIGHT","mainColor":"#1165f1","leftOffset":0,"accentColor":"#333333","dialogTitle":"","rightOffset":0,"bottomOffset":0,"advancedOptions":false,"unsubscribeText":"","hideIfSubscribed":false,"subscribeBtnText":"","unblockGuideText":"","subscribedTooltip":"","unsubscribeBtnText":"","nonSubscriberTooltip":"","afterSubscriptionText":"","unblockNotificationText":"","blockedSubscriberTooltip":""},"slideSettings":{"text":"We\'d like to show you notifications for the latest news and updates.","fixed":false,"theme":"BOTTOM_BTNS","title":"","details":null,"location":"TOP_CENTER","showIcon":true,"mainColor":"#1165f1","showTitle":false,"acceptBtnText":"Allow","cancelBtnText":"No Thanks","advancedOptions":false},"bannerSettings":{"text":"","fixed":true,"theme":"DEFAULT","details":null,"location":"BOTTOM","showIcon":true,"mainColor":"#333333","acceptBtnText":"Enable","advancedOptions":false},"defaultIconUrl":"https://s3.eu-central-1.amazonaws.com/prod-d5a29e72-54b5-5137-a534-3fd991dbb8ad/201911/blutv-logo.png","selectedPrompt":"SLIDE","autoShowSettings":{"delay":0,"denyWaitTime":0,"promptAfterXVisits":0,"repromptAfterXMinutes":0},"welcomeNotification":{"link":"","title":"DVL hesabına Hoş geldiniz","enabled":true,"message":"Ne iyi ettiniz de geldiniz"}}');
 
   function startPushClient(callback, isFirstTime) {
-    pushClient.init().then(function () {
-      pushClient.getTokenInfo().then(function (tokenInfo) {
+    pushClient$1.init().then(function () {
+      pushClient$1.getTokenInfo().then(function (tokenInfo) {
         console.log('Token: ' + tokenInfo.token);
         sendSubscription.setToken(tokenInfo.token);
         sendSubscription.setTokenType(tokenInfo.tokenType);
@@ -879,7 +901,7 @@
   function start(callback) {
     callback = callback || function () {};
 
-    var currentPermission = pushClient.getPermission();
+    var currentPermission = pushClient$1.getPermission();
 
     if (currentPermission == 'granted') {
       console.log('Notification permission already granted.');
@@ -945,7 +967,7 @@
 
   var publicMethods = {
     initialize: function initialize(callback) {
-      if (pushClient.detected() && 'true' == 'true') {
+      if (pushClient$1.detected() && 'true' == 'true') {
         window.addEventListener('load', function () {
           start(callback);
         });
