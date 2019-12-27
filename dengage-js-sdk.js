@@ -668,7 +668,7 @@
   }
 
   function refreshPermissionData() {
-    permissionData = window.safari.pushNotification.permission(websitePushID);
+    permissionData = window.safari.pushNotification.permission(getWebsitePushID());
   }
 
   var safariClient = {
