@@ -101,13 +101,13 @@ function getFingerprint() {
 		</script>
 
 <script>
-  !function(e,a,n,d,g){e.dengage=e.dengage||function(){(e.dengage.q=e.dengage.q||[]).push(arguments)},d=a.getElementsByTagName("head")[0],(g=a.createElement("script")).async=1,g.src="https://pdev.dengage.com/p/push/10/4a51eec2-df65-164d-a6b6-07afa53a83f0/dengage_sdk.js",d.appendChild(g)}(window,document);
+  !function(e,a,n,d,g){e.dengage=e.dengage||function(){(e.dengage.q=e.dengage.q||[]).push(arguments)},d=a.getElementsByTagName("head")[0],(g=a.createElement("script")).async=1,g.src="/dengage-js-sdk.js",d.appendChild(g)}(window,document);
   dengage('initialize');
 </script>
 
 
 <script>
-function safariPermissionCb(permissionData) {
+/*function safariPermissionCb(permissionData) {
     if (permissionData.permission === 'default') {
 		console.log('user made default. it is impossible');
     }
@@ -137,7 +137,7 @@ if ('safari' in window && 'pushNotification' in window.safari) {
         console.log('Notification permission denied');
 
     }
-}
+}*/
 </script>
 </head>
 <body>

@@ -1,5 +1,7 @@
-(function () {
+(function (subscriptionManager) {
   'use strict';
+
+  subscriptionManager = subscriptionManager && subscriptionManager.hasOwnProperty('default') ? subscriptionManager['default'] : subscriptionManager;
 
   function shadeHexColor(color, percent) {
     var f = parseInt(color.slice(1), 16),
@@ -32,6 +34,38 @@
     }
 
     return 'inherit';
+  }
+  function generateUUID() {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+      var r = Math.random() * 16 | 0,
+          v = c == 'x' ? r : r & 0x3 | 0x8;
+      return v.toString(16).toLowerCase();
+    });
+  }
+  function logError(errorText) {
+    console.error(errorText);
+  }
+  function errorLoggerResolved(errorText, resolveValue) {
+    return function (input) {
+      if (input) {
+        console.error(errorText, input);
+      } else {
+        console.error(errorText);
+      }
+
+      return resolveValue;
+    };
+  }
+  function errorLoggerRejected(errorText, rejectValue) {
+    return function (input) {
+      if (input) {
+        console.error(errorText, input);
+      } else {
+        console.error(errorText);
+      }
+
+      return Promise.reject(rejectValue);
+    };
   }
 
   function generateSlideHtml(appSettings) {
@@ -348,175 +382,6 @@
     };
   }
 
-  function showNativePrompt(grantedCallback, deniedCallback) {
-    Notification.requestPermission().then(function (permission) {
-      if (permission === 'granted') {
-        if (grantedCallback) {
-          grantedCallback();
-        }
-      } else {
-        if (deniedCallback) {
-          deniedCallback();
-        }
-      }
-    });
-  }
-  function showCustomPrompt(appSettings, grantedCallback, deniedCallback) {
-    if (appSettings.selectedPrompt == 'SLIDE') {
-      var slidePrompt = showSlidePromt(appSettings);
-      slidePrompt.onAccept(function () {
-        showNativePrompt(grantedCallback, deniedCallback);
-      });
-      slidePrompt.onDeny(function () {
-        deniedCallback();
-      });
-    } else if (appSettings.selectedPrompt == 'BANNER') {
-      var bannerPrompt = showBannerPromt(appSettings);
-      bannerPrompt.onAccept(function () {
-        showNativePrompt(grantedCallback, deniedCallback);
-      });
-      bannerPrompt.onDeny(function () {
-        deniedCallback();
-      });
-    } else {
-      showNativePrompt(grantedCallback);
-    }
-
-    localStorage.setItem('dengage_webpush_last_a', 'ask');
-    localStorage.setItem('dengage_webpush_last_d', new Date().valueOf() + '');
-  }
-
-  function toInt(input) {
-    if (typeof input == 'number') {
-      return input;
-    }
-
-    if (typeof input == 'string') {
-      return input === '' ? 0 : parseInt(input);
-    }
-
-    return 0;
-  }
-  /*autoShowSettings: {
-      delay: 0, //second (session bazlı)
-      promptAfterXVisits: 0,
-      repromptAfterXMinutes: 0, //minutes
-      denyWaitTime: 0, //minutes
-  }*/
-
-
-  function startAutoPrompt(appSettings, grantedCallback, deniedCallback) {
-    var autoShowSettings = appSettings.autoShowSettings;
-    var sessionStartTime = toInt(sessionStorage.getItem('dengage_session_start'));
-
-    if (sessionStartTime) {
-      sessionStartTime = new Date(sessionStartTime);
-    } else {
-      sessionStartTime = new Date();
-      sessionStorage.setItem('dengage_session_start', sessionStartTime.valueOf() + '');
-    }
-
-    var now = new Date();
-
-    var setPrompt = function setPrompt() {
-      var delay = toInt(autoShowSettings.delay) * 1000;
-      var passedTime = now.valueOf() - sessionStartTime.valueOf();
-      var waitTime = delay - passedTime;
-      waitTime = waitTime > 0 ? waitTime : 0;
-      setTimeout(function () {
-        showCustomPrompt(appSettings, grantedCallback, deniedCallback);
-      }, waitTime);
-    };
-
-    var visitCount = toInt(localStorage.getItem('dengage_visit_count'));
-    localStorage.setItem('dengage_visit_count', visitCount + 1);
-
-    if (toInt(autoShowSettings.promptAfterXVisits) <= visitCount) {
-      var lastPromptAction = localStorage.getItem('dengage_webpush_last_a') || '';
-      var lastPromptDate = toInt(localStorage.getItem('dengage_webpush_last_d'));
-      lastPromptDate = new Date(lastPromptDate);
-      var denyWaitTime = toInt(autoShowSettings.denyWaitTime) * 60 * 1000;
-      var denyWaitUntil = new Date(lastPromptDate.valueOf() + denyWaitTime);
-      var repromptWaitTime = toInt(autoShowSettings.repromptAfterXMinutes);
-      var repromptWaitUntil = new Date(lastPromptDate.valueOf() + repromptWaitTime);
-
-      if (lastPromptAction == 'denied') {
-        if (now >= denyWaitUntil) {
-          setPrompt();
-        }
-      } else {
-        if (now >= repromptWaitUntil) {
-          setPrompt();
-        }
-      }
-    }
-  }
-
-  function generateUUID() {
-    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
-      var r = Math.random() * 16 | 0,
-          v = c == 'x' ? r : r & 0x3 | 0x8;
-      return v.toString(16).toLowerCase();
-    });
-  }
-
-  function getDeviceId() {
-    var deviceId = localStorage.getItem('dengage_device_id') || generateUUID();
-    localStorage.setItem('dengage_device_id', deviceId);
-    return Promise.resolve(deviceId);
-  }
-  function getContactKey() {
-    var contactKey = localStorage.getItem('dengage_contact_key');
-
-    if (contactKey) {
-      return contactKey;
-    }
-
-    return null;
-  }
-  function setContactKey(value) {
-    localStorage.setItem('dengage_contact_key', value);
-  }
-
-  function sendSubscription(token, pushSubscription) {
-    getDeviceId().then(function (deviceId) {
-      var tokenType =  pushSubscription ? 'W' : 'F';
-      var data = {
-        "integrationKey": "GylYPy9XfZj0xir63kYLbpqqUTYZ2DfY629Tc_p_l_XlF3M6DJDzaE_s_l_pvwU8UKkKe4RN1lcUzkPnjB_p_l_IRnHz3MsWiQmEFbBu0sHLmKY96jwadN3CAAEJjRU7RlYaaZb0GBLT",
-        "token": token,
-        "contactKey": getContactKey(),
-        "permission": true,
-        "udid": deviceId,
-        "advertisingId": "",
-        "carrierId": null,
-        "appVersion": null,
-        "sdkVersion": "1.0",
-        "trackingPermission": true,
-        "webSubscription": pushSubscription ? JSON.stringify(pushSubscription) : null,
-        "tokenType": tokenType
-      };
-      var request = fetch('https://pushdev.dengage.com/api/web/subscription', {
-        method: 'POST',
-        // *GET, POST, PUT, DELETE, etc.
-        mode: 'cors',
-        // no-cors, *cors, same-origin
-        cache: 'no-cache',
-        // *default, no-cache, reload, force-cache, only-if-cached
-        credentials: 'omit',
-        // include, *same-origin, omit
-        headers: {
-          'Content-Type': 'text/plain'
-        },
-        redirect: 'follow',
-        // manual, *follow, error
-        referrer: 'no-referrer',
-        // no-referrer, *client
-        body: JSON.stringify(data) // body data type must match "Content-Type" header
-
-      });
-    });
-  }
-
   // for clearing non-printable ascii chars    string.replace(/[^ -~]+/g, "");
   function sha256(ascii) {
     function rightRotate(value, amount) {
@@ -618,106 +483,476 @@
     return result;
   }
 
+  var token = null;
+  var webSubscription = null;
+
   function generateToken(subscription) {
     var subText = JSON.stringify(subscription);
-    subText = subText.replace(/[^ -~]+/g, "");
+    subText = subText.replace(/[^ -~]+/g, '');
     return 'dn_' + sha256(subText);
   }
 
-  function start(appSettings, callback) {
+  function refreshSubscription(registration) {
+    return registration.pushManager.getSubscription().then(function (subscription) {
+      if (subscription) {
+        webSubscription = subscription;
+        token = generateToken(subscription);
+      } else {
+        var options = {
+          userVisibleOnly: true,
+          applicationServerKey: 'BJnJ_PO2DHLkWmn6ha4K4Ahwt4G7PolU7TA-w52UPT9A0eeWh4EEcT3dD9tSxwMciJDuDEc2ZbBDxBjawExj4KM'
+        };
+        return registration.pushManager.subscribe(options).then(function (newSubscription) {
+          webSubscription = newSubscription;
+          token = generateToken(newSubscription);
+        }, errorLoggerRejected('pushManager.subscribe failed'));
+      }
+    }, errorLoggerRejected('getSubscription failed'));
+  }
+
+  var webPushApiClient = {
+    detected: function detected() {
+      return 'serviceWorker' in navigator && 'PushManager' in window;
+    },
+    init: function init() {
+      var currentPermission = Notification.permission;
+
+      if (currentPermission === 'granted') {
+        return navigator.serviceWorker.register('/dengage-webpush-sw.js', {
+          updateViaCache: 'none'
+        }).then(function () {
+          // chrome register yapınca hemen ready olmuyor
+          return navigator.serviceWorker.ready.then(function (registration) {
+            return refreshSubscription(registration);
+          }).catch(errorLoggerRejected('serviceWorker.ready failed')); //TODO: on refresh token
+        }, errorLoggerRejected('An error occurred while registering service worker'));
+      } else {
+        logError('init called when permission is not default');
+        return Promise.reject();
+      }
+    },
+    getTokenInfo: function getTokenInfo() {
+      var currentPermission = Notification.permission;
+
+      if (currentPermission === 'granted') {
+        if (token == null || webSubscription == null) {
+          return navigator.serviceWorker.ready.then(function (registration) {
+            return refreshSubscription(registration);
+          }).then(function () {
+            return {
+              token: token,
+              tokenType: 'W',
+              webSubscription: webSubscription
+            };
+          }, errorLoggerResolved('serviceWorker.ready failed', null));
+        }
+
+        return Promise.resolve({
+          token: token,
+          tokenType: 'W',
+          webSubscription: webSubscription
+        });
+      }
+
+      return Promise.resolve(null);
+    },
+    requestPermission: function requestPermission() {
+      return Notification.requestPermission();
+    },
+    getPermission: function getPermission() {
+      return Notification.permission;
+    }
+  };
+
+  var sentDate = sessionStorage.getItem('subscription_sent_d');
+  var aboutToSend = false;
+
+  function triggerSend() {
+    if (aboutToSend == false) {
+      aboutToSend = true;
+      setTimeout(function () {
+        aboutToSend = false;
+        sendSubscription();
+      }, 1000);
+    }
+  }
+
+  setTimeout(function () {
+    triggerSend();
+  }, 2000);
+  function getDeviceId() {
+    var deviceId = localStorage.getItem('dengage_device_id') || generateUUID();
+    localStorage.setItem('dengage_device_id', deviceId);
+    return Promise.resolve(deviceId);
+  }
+  function getContactKey() {
+    return localStorage.getItem('dengage_contact_key') || null;
+  }
+  function setContactKey(value) {
+    localStorage.setItem('dengage_contact_key', value);
+  }
+  function getToken() {
+    return localStorage.getItem('dengage_webpush_token') || null;
+  }
+  function getTokenType() {
+    return localStorage.getItem('dengage_webpush_token_type') || null;
+  }
+  function getWebSubscription() {
+    return localStorage.getItem('dengage_webpush_sub') || null;
+  }
+  function sendSubscription() {
+    getDeviceId().then(function (deviceId) {
+      var data = {
+        "integrationKey": "BkziFc7ghQKPjZ5x9TovmjY_p_l_JwPewW2_p_l_mn_p_l_xHL3eUnBmZ4HMW28r0lc3T9gT6ueB4WBsIKmRRrSj_p_l_kHNGCexHkReFgqJwy8D8jHmzo_p_l_ivpVzLE0UuNFGT2Bq9QdroCwY",
+        "token": getToken(),
+        "contactKey": getContactKey(),
+        "permission": true,
+        "udid": deviceId,
+        "advertisingId": "",
+        //TODO: burası yapılacak
+        "carrierId": null,
+        "appVersion": null,
+        "sdkVersion": "1.0",
+        "trackingPermission": true,
+        "webSubscription": getWebSubscription(),
+        "tokenType": getTokenType() // buraya token status eklenebilir
+
+      };
+      var request = fetch('https://pushdev.dengage.com/api/web/subscription', {
+        method: 'POST',
+        // *GET, POST, PUT, DELETE, etc.
+        mode: 'cors',
+        // no-cors, *cors, same-origin
+        cache: 'no-cache',
+        // *default, no-cache, reload, force-cache, only-if-cached
+        credentials: 'omit',
+        // include, *same-origin, omit
+        headers: {
+          'Content-Type': 'text/plain'
+        },
+        redirect: 'follow',
+        // manual, *follow, error
+        referrer: 'no-referrer',
+        // no-referrer, *client
+        body: JSON.stringify(data) // body data type must match "Content-Type" header
+
+      });
+    });
+  }
+
+  var permissionData = null;
+
+  function getWebsitePushID() {
+    var hostname = _.options['hostname'] || window.location.hostname;
+    return hostname.split('.').concat('web').reverse().join('.');
+  }
+
+  function refreshPermissionData() {
+    permissionData = window.safari.pushNotification.permission(websitePushID);
+  }
+
+  var safariClient = {
+    detected: function detected() {
+      return 'safari' in window && 'pushNotification' in window.safari;
+    },
+    init: function init() {
+      if (permissionData.permission == 'default') {
+        refreshPermissionData();
+        return Promise.resolve();
+      } else {
+        logError('init called when permission is not default');
+        return Promise.reject();
+      }
+    },
+    getTokenInfo: function getTokenInfo() {
+      if (permissionData == null) {
+        refreshPermissionData();
+      }
+
+      if (permissionData.permission === 'granted') {
+        return Promise.resolve({
+          token: permissionData.deviceToken,
+          tokenType: 'S',
+          webSubscription: null
+        });
+      }
+
+      return Promise.resolve(null);
+    },
+    requestPermission: function requestPermission() {
+      return new Promise(function (resolve, reject) {
+        if (permissionData == null) {
+          refreshPermissionData();
+        }
+
+        function safariPermissionCb(result) {
+          permissionData = result;
+          /*if (permissionData.permission === 'default') {
+              console.log('user made default. it is impossible');
+          }
+          else if (permissionData.permission === 'denied') {
+              console.log('user said no');
+          }
+          else if (permissionData.permission === 'granted') {
+              console.log('user said yes');
+              console.log('Token: ' + permissionData.deviceToken);
+          }*/
+
+          resolve(permissionData.permission);
+        }
+
+        if (permissionData.permission == 'default') {
+          getDeviceId().then(function (deviceId) {
+            var websitePushID = getWebsitePushID();
+            var url = 'https://##DN_PUSH_API_DOMAIN##/api/safari/90db7e2a-5839-53cd-605f-9d3ffc328e21';
+            var userInfo = {
+              device_id: deviceId
+            };
+            window.safari.pushNotification.requestPermission(url, websitePushID, userInfo, safariPermissionCb);
+          });
+        } else {
+          logError('requestPermission called when permission is not default');
+          reject();
+        }
+      });
+    },
+    getPermission: function getPermission() {
+      if (permissionData == null) {
+        refreshPermissionData();
+      }
+
+      return permissionData.permission;
+    }
+  };
+
+  var pushClient = {
+    detected: function detected() {
+      return false;
+    }
+  };
+
+  if (safariClient.detected()) {
+    Object.assign(pushClient, safariClient);
+  } else {
+    Object.assign(pushClient, webPushApiClient);
+  }
+  /**
+   * detected
+   *      Bu client'ın desteklenip desteklenmediğini döner.
+   *      Mesela safariClient safari olup olmadığını ve push destekleyip desteklemediğini döner
+   *      Boolean döner
+   * init
+   *      servis worker register etmek ve benzeri işleri yapacak.
+   *      Bu push izni granted olduğu zaman çağrılacak. granted olmadan çağrılamaz. Çağrılırsa hata loglar
+   *      promise döner
+   * getTokenInfo
+   *      promise dönecek
+   *      {token, tokenType, webSubscription} olarak dönecek. Eğer izin yoksa null dönecek.
+   * requestPermission
+   *      Push izni soracak ve promise dönecek. String dönecek. Dönen sonuçta permission ya "granted" olacak ya da "denied"
+   * getPermission
+   *      Şu anki permission'ı döner. "granted", "denied", "default" olabilir. string dönecek
+   */
+
+
+  var pushClient$1 = {
+    pushClient: pushClient
+  };
+
+  function showNativePrompt(grantedCallback, deniedCallback) {
+    pushClient$1.requestPermission().then(function (permission) {
+      if (permission === 'granted') {
+        setLocalStoragePromptResult('granted');
+
+        if (grantedCallback) {
+          grantedCallback();
+        }
+      } else {
+        setLocalStoragePromptResult('denied');
+
+        if (deniedCallback) {
+          deniedCallback();
+        }
+      }
+    });
+  }
+  function showCustomPrompt(appSettings, grantedCallback, deniedCallback) {
+    if (appSettings.selectedPrompt == 'SLIDE') {
+      var slidePrompt = showSlidePromt(appSettings);
+      slidePrompt.onAccept(function () {
+        showNativePrompt(grantedCallback, deniedCallback);
+      });
+      slidePrompt.onDeny(function () {
+        setLocalStoragePromptResult('denied');
+
+        if (deniedCallback) {
+          deniedCallback();
+        }
+      });
+    } else if (appSettings.selectedPrompt == 'BANNER') {
+      var bannerPrompt = showBannerPromt(appSettings);
+      bannerPrompt.onAccept(function () {
+        showNativePrompt(grantedCallback, deniedCallback);
+      });
+      bannerPrompt.onDeny(function () {
+        setLocalStoragePromptResult('denied');
+
+        if (deniedCallback) {
+          deniedCallback();
+        }
+      });
+    } else {
+      showNativePrompt(grantedCallback, deniedCallback);
+    }
+
+    localStorage.setItem('dengage_webpush_last_a', 'ask');
+    localStorage.setItem('dengage_webpush_last_d', new Date().valueOf() + '');
+  }
+  /*autoShowSettings: {
+      delay: 0, //second (session bazlı)
+      promptAfterXVisits: 0,
+      repromptAfterXMinutes: 0, //minutes
+      denyWaitTime: 0, //minutes
+  }*/
+
+  function startAutoPrompt(appSettings, grantedCallback, deniedCallback) {
+    var autoShowSettings = appSettings.autoShowSettings;
+    var sessionStartTime = toInt(sessionStorage.getItem('dengage_session_start'));
+
+    if (sessionStartTime) {
+      sessionStartTime = new Date(sessionStartTime);
+    } else {
+      sessionStartTime = new Date();
+      sessionStorage.setItem('dengage_session_start', sessionStartTime.valueOf() + '');
+    }
+
+    var now = new Date();
+
+    var setPrompt = function setPrompt() {
+      var delay = toInt(autoShowSettings.delay) * 1000;
+      var passedTime = now.valueOf() - sessionStartTime.valueOf();
+      var waitTime = delay - passedTime;
+      waitTime = waitTime > 0 ? waitTime : 0;
+      setTimeout(function () {
+        showCustomPrompt(appSettings, grantedCallback, deniedCallback);
+      }, waitTime);
+    };
+
+    var visitCount = toInt(localStorage.getItem('dengage_visit_count'));
+    localStorage.setItem('dengage_visit_count', visitCount + 1);
+
+    if (toInt(autoShowSettings.promptAfterXVisits) <= visitCount) {
+      var lastPromptAction = localStorage.getItem('dengage_webpush_last_a') || '';
+      var lastPromptDate = toInt(localStorage.getItem('dengage_webpush_last_d'));
+      lastPromptDate = new Date(lastPromptDate);
+      var denyWaitTime = toInt(autoShowSettings.denyWaitTime) * 60 * 1000;
+      var denyWaitUntil = new Date(lastPromptDate.valueOf() + denyWaitTime);
+      var repromptWaitTime = toInt(autoShowSettings.repromptAfterXMinutes);
+      var repromptWaitUntil = new Date(lastPromptDate.valueOf() + repromptWaitTime);
+
+      if (lastPromptAction == 'denied') {
+        if (now >= denyWaitUntil) {
+          setPrompt();
+        }
+      } else {
+        if (now >= repromptWaitUntil) {
+          setPrompt();
+        }
+      }
+    }
+  }
+
+  function toInt(input) {
+    if (typeof input == 'number') {
+      return input;
+    }
+
+    if (typeof input == 'string') {
+      return input === '' ? 0 : parseInt(input);
+    }
+
+    return 0;
+  }
+
+  function setLocalStoragePromptResult(result) {
+    localStorage.setItem('dengage_webpush_last_a', result);
+    localStorage.setItem('dengage_webpush_last_d', new Date().valueOf() + '');
+  }
+
+  var appSettings = JSON.parse('{"name":"muhammed-wh.github.io","siteUrl":"https://muhammed-wh.github.io","autoShow":false,"bellSettings":{"size":"MEDIUM","location":"RIGHT","mainColor":"#1165f1","leftOffset":0,"accentColor":"#333333","dialogTitle":"","rightOffset":0,"bottomOffset":0,"advancedOptions":false,"unsubscribeText":"","hideIfSubscribed":false,"subscribeBtnText":"","unblockGuideText":"","subscribedTooltip":"","unsubscribeBtnText":"","nonSubscriberTooltip":"","afterSubscriptionText":"","unblockNotificationText":"","blockedSubscriberTooltip":""},"slideSettings":{"text":"We\'d like to show you notifications for the latest news and updates.","fixed":false,"theme":"BOTTOM_BTNS","title":"","details":null,"location":"TOP_CENTER","showIcon":true,"mainColor":"#1165f1","showTitle":false,"acceptBtnText":"Allow","cancelBtnText":"No Thanks","advancedOptions":false},"bannerSettings":{"text":"","fixed":true,"theme":"DEFAULT","details":null,"location":"BOTTOM","showIcon":true,"mainColor":"#333333","acceptBtnText":"Enable","advancedOptions":false},"defaultIconUrl":"https://s3.eu-central-1.amazonaws.com/prod-d5a29e72-54b5-5137-a534-3fd991dbb8ad/201911/blutv-logo.png","selectedPrompt":"SLIDE","autoShowSettings":{"delay":0,"denyWaitTime":0,"promptAfterXVisits":0,"repromptAfterXMinutes":0},"welcomeNotification":{"link":"","title":"DVL hesabına Hoş geldiniz","enabled":true,"message":"Ne iyi ettiniz de geldiniz"}}');
+
+  function startPushClient(callback, isFirstTime) {
+    pushClient$1.init().then(function () {
+      pushClient$1.getTokenInfo().then(function (tokenInfo) {
+        console.log('Token: ' + tokenInfo.token);
+        subscriptionManager.setToken(tokenInfo.token);
+        subscriptionManager.setTokenType(tokenInfo.tokenType);
+        subscriptionManager.setWebSubscription(tokenInfo.webSubscription || null);
+
+        if (isFirstTime) {
+          subscriptionManager();
+        }
+
+        callback();
+      }).then(function (err) {
+        console.log('pushClient.getTokenInfo() failed. ', err);
+        callback();
+      });
+    }).then(function (err) {
+      console.log('pushClient.init() failed. ', err);
+      callback();
+    });
+  }
+
+  function start(callback) {
     callback = callback || function () {};
 
-    localStorage.setItem('dengage_webpush_token', '');
-    var currentPermission = Notification.permission;
+    var currentPermission = pushClient$1.getPermission();
 
     if (currentPermission == 'granted') {
       console.log('Notification permission already granted.');
-      navigator.serviceWorker.register('/dengage-webpush-sw.js').then(function (registration) {
-        //messaging.useServiceWorker(registration);
-        registration.pushManager.getSubscription().then(function (subscription) {
-          if (subscription) {
-            var token = generateToken(subscription);
-            console.log('Token: ' + token);
-            localStorage.setItem('dengage_webpush_token', token);
-            sendSubscription(token, subscription);
-            callback();
-          } else {
-            var options = {
-              userVisibleOnly: true,
-              applicationServerKey: 'BLJTxjZytBGfv-dICBXWvGPfOHDgt7feXS3CtEU1nRY9oPRdLi6Sp3NP1XCuIx83jNFu-rWa5jztoE_9hDU0cSw'
-            };
-            registration.pushManager.subscribe(options).then(function (newSubscription) {
-              var token = generateToken(newSubscription);
-              console.log('New Token: ' + token);
-              localStorage.setItem('dengage_webpush_token', token);
-              sendSubscription(token, newSubscription);
-              callback();
-            }).catch(function (err) {
-              console.log('pushManager.subscribe failed. ', err);
-              callback();
-            });
-          }
-        }).catch(function (err) {
-          console.log('getSubscription failed. ', err);
-          callback();
-        }); //TODO: on refresh token
-      }).catch(function (err) {
-        console.log('An error occurred while registering service worker. ', err);
-        callback();
-      });
+      startPushClient(callback);
     } else if (currentPermission == 'default') {
-      var onPermissionGranted = function onPermissionGranted() {
-        console.log('Notification permission granted.');
-        localStorage.setItem('dengage_webpush_last_a', 'granted');
-        localStorage.setItem('dengage_webpush_last_d', new Date().valueOf() + '');
-        navigator.serviceWorker.register('/dengage-webpush-sw.js').then(function (registration) {
-          //messaging.useServiceWorker(registration);
-          var options = {
-            userVisibleOnly: true,
-            applicationServerKey: '##VAPID_PUBLIC_KEY##'
-          };
-          registration.pushManager.subscribe(options).then(function (newSubscription) {
-            var token = generateToken(newSubscription);
-            console.log('New Token: ' + token);
-            localStorage.setItem('dengage_webpush_token', token);
-            sendSubscription(token, newSubscription);
-            callback();
-          }).catch(function (err) {
-            console.log('pushManager.subscribe failed. ', err);
-            callback();
-          });
-        }).catch(function (err) {
-          console.log('An error occurred while registering service worker. ', err);
-          callback();
-        });
-      };
+      subscriptionManager.setToken(null);
+      subscriptionManager.setTokenType(null);
+      subscriptionManager.setWebSubscription(null);
 
-      var onPermissionDenied = function onPermissionDenied() {
-        console.log('Notification permission denied.');
-        localStorage.setItem('dengage_webpush_last_a', 'denied');
-        localStorage.setItem('dengage_webpush_last_d', new Date().valueOf() + '');
-      };
+      if (appSettings.autoShow) {
+        var onPermissionGranted = function onPermissionGranted() {
+          console.log('Notification permission granted.');
+          startPushClient(callback, true); //TODO: manual prompt yapılan yerlerde startPushClient çağrılmalı
+        };
 
-      startAutoPrompt(appSettings, onPermissionGranted, onPermissionDenied);
+        var onPermissionDenied = function onPermissionDenied() {
+          console.log('Notification permission denied.');
+        };
+
+        startAutoPrompt(appSettings, onPermissionGranted, onPermissionDenied);
+      }
+
       callback();
     } else {
       console.log('Notification permission denied');
+      subscriptionManager.setToken(null);
+      subscriptionManager.setTokenType(null);
+      subscriptionManager.setWebSubscription(null);
       callback();
-    } //TODO: onMessage
+    } //TODO: pushClient.onTokenRefresh
+    //TODO: onMessage
 
   }
-
-  function isWebpushSupported() {
-    if ("serviceWorker" in navigator && "PushManager" in window) {
-      return true;
-    }
-
-    return false;
+  function showNativePrompt$1() {//TODO: prompt lar buraya taşınmalı, o sayede burada startPushClient yapılabilir
   }
+
+  var WebPushManager = /*#__PURE__*/Object.freeze({
+    __proto__: null,
+    start: start,
+    showNativePrompt: showNativePrompt$1
+  });
 
   function sendEvent(table, key, data) {
     var params = {
-      "accountId": "82e7e586-5efa-ef76-7663-1413870c3b76",
+      "accountId": "##ACCOUNT_GUID##",
       "key": key,
       "eventTable": table,
       "eventDetails": data
@@ -744,30 +979,24 @@
     });
   }
 
-  var appSettings = JSON.parse('{"name":"muhammed-wh.github.io","siteUrl":"https://muhammed-wh.github.io","defaultIconUrl":"https://www.materialui.co/materialIcons/action/check_circle_grey_192x192.png","selectedPrompt":"SLIDE","autoShow":false,"autoShowSettings":{"delay":10,"promptAfterXVisits":3,"repromptAfterXMinutes":5,"denyWaitTime":10},"slideSettings":{"location":"TOP_CENTER","theme":"BOTTOM_BTNS","fixed":false,"showIcon":true,"mainColor":"#1165f1","showTitle":false,"title":"","text":"We\'d like to show you notifications for the latest news and updates.","acceptBtnText":"Allow","cancelBtnText":"No Thanks","advancedOptions":false,"details":null},"bannerSettings":{"location":"BOTTOM","theme":"DEFAULT","fixed":true,"showIcon":true,"mainColor":"#333333","text":"","acceptBtnText":"Enable","advancedOptions":false,"details":{"backgroundColor":"","fontFamily":"","border":0,"borderColor":"","shadow":false,"textSyle":{"textColor":"#333333","fontSize":"","fontWeight":""},"acceptBtnStyle":{"backgroundColor":"","hoverBackgroundColor":"","textColor":"#333333","fontSize":"","fontWeight":"","border":0,"borderColor":"","borderRadius":0,"shadow":false},"cancelBtnStyle":{"backgroundColor":"","hoverBackgroundColor":"","textColor":"#333333","hoverTextColor":"","fontSize":"","fontWeight":"","border":0,"borderColor":"","shadow":false}}},"bellSettings":{"size":"MEDIUM","location":"RIGHT","mainColor":"#1165f1","accentColor":"#333333","hideIfSubscribed":false,"nonSubscriberTooltip":"","blockedSubscriberTooltip":"","subscribedTooltip":"","afterSubscriptionText":"","unsubscribeText":"","dialogTitle":"","subscribeBtnText":"","unsubscribeBtnText":"","unblockNotificationText":"","unblockGuideText":"","bottomOffset":0,"leftOffset":0,"rightOffset":0,"advancedOptions":false},"welcomeNotification":{"enabled":false,"title":"","message":"","link":""}}');
   var publicMethods = {
     initialize: function initialize(callback) {
-      if (isWebpushSupported()) {
+      if (pushClient$1.detected() && 'true' == 'true') {
         window.addEventListener('load', function () {
-          start(appSettings, callback);
+          start(callback);
         });
+      } else {
+        if (callback) {
+          callback();
+        }
       }
     },
 
     /**************** Web Push ********************/
-    showNativePrompt: function showNativePrompt$1(callback) {
-      showNativePrompt(function () {
-        if (callback) {
-          callback('granted');
-        }
-      }, function () {
-        if (callback) {
-          callback('denied');
-        }
-      });
+    showNativePrompt: function showNativePrompt(callback) {
     },
-    showCustomPrompt: function showCustomPrompt$1(callback) {
-      showCustomPrompt(appSettings, function () {
+    showCustomPrompt: function showCustomPrompt(callback) {
+      undefined(function () {
         if (callback) {
           callback('granted');
         }
@@ -778,16 +1007,19 @@
       });
     },
     getNotificationPermission: function getNotificationPermission(callback) {
+
       if (callback) {
         callback(Notification.permission);
       }
     },
-    getToken: function getToken(callback) {
+    getToken: function getToken$1(callback) {
+
       if (callback) {
-        callback(localStorage.getItem('dengage_webpush_token'));
+        callback(getToken());
       }
     },
     isPushNotificationsSupported: function isPushNotificationsSupported(callback) {
+
       if (callback) {
         callback(isWebpushSupported());
       }
@@ -860,4 +1092,4 @@
   })(window, document, "");
   */
 
-}());
+}(subscriptionManager));
