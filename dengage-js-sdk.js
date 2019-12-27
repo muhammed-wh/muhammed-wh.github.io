@@ -663,7 +663,7 @@
   var permissionData = null;
 
   function getWebsitePushID() {
-    var hostname = _.options['hostname'] || window.location.hostname;
+    var hostname = window.location.hostname;
     return hostname.split('.').concat('web').reverse().join('.');
   }
 
