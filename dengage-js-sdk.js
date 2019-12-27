@@ -673,6 +673,7 @@
 
   var safariClient = {
     detected: function detected() {
+      //TODO: safari_enabled a bakılacak
       return 'safari' in window && 'pushNotification' in window.safari;
     },
     init: function init() {
@@ -724,7 +725,7 @@
         if (permissionData.permission == 'default') {
           getDeviceId().then(function (deviceId) {
             var websitePushID = getWebsitePushID();
-            var url = 'https://##DN_PUSH_API_DOMAIN##/api/safari/90db7e2a-5839-53cd-605f-9d3ffc328e21';
+            var url = 'https://pushdev.dengage.com/api/safari/90db7e2a-5839-53cd-605f-9d3ffc328e21';
             var userInfo = {
               device_id: deviceId
             };
@@ -938,7 +939,7 @@
 
   function sendEvent(table, key, data) {
     var params = {
-      "accountId": "##ACCOUNT_GUID##",
+      "accountId": "90db7e2a-5839-53cd-605f-9d3ffc328e21",
       "key": key,
       "eventTable": table,
       "eventDetails": data
