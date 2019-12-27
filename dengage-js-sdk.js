@@ -525,7 +525,7 @@
           }).catch(errorLoggerRejected('serviceWorker.ready failed')); //TODO: on refresh token
         }, errorLoggerRejected('An error occurred while registering service worker'));
       } else {
-        logError('init called when permission is not default');
+        logError('init called when permission is not granted');
         return Promise.reject();
       }
     },
@@ -677,11 +677,14 @@
       return 'safari' in window && 'pushNotification' in window.safari;
     },
     init: function init() {
-      if (permissionData.permission == 'default') {
+      if (permissionData == null) {
         refreshPermissionData();
+      }
+
+      if (permissionData.permission == 'granted') {
         return Promise.resolve();
       } else {
-        logError('init called when permission is not default');
+        logError('init called when permission is not granted');
         return Promise.reject();
       }
     },
