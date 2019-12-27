@@ -946,18 +946,20 @@
 
   function showWellcomeNotification() {
     if (appSettings.welcomeNotification.enabled) {
-      var title = appSettings.welcomeNotification.title || 'Wellcome';
-      var options = {
-        body: appSettings.welcomeNotification.message || ''
-      };
-      var notif = new Notification(title, options);
-
-      if (appSettings.welcomeNotification.link) {
-        notif.onclick = function (event) {
-          event.notification.close();
-          window.open(appSettings.welcomeNotification.link);
+      setTimeout(function () {
+        var title = appSettings.welcomeNotification.title || 'Wellcome';
+        var options = {
+          body: appSettings.welcomeNotification.message || ''
         };
-      }
+        var notif = new Notification(title, options);
+
+        if (appSettings.welcomeNotification.link) {
+          notif.onclick = function (event) {
+            event.notification.close();
+            window.open(appSettings.welcomeNotification.link);
+          };
+        }
+      }, 500);
     }
   }
 
