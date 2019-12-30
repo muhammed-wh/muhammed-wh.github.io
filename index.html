@@ -146,12 +146,16 @@ var myCallback = function (browsingInIncognitoMode, BrowsingModeDetectorInstance
     console.log('Browsing Mode:', BrowsingModeDetectorInstance.getBrowsingMode());
   
     if (browsingInIncognitoMode) {
-        console.log('incognito mode !!!');
-        document.getElementById('incognito').innerHTML = 'incognito mode !!!';
+        setTimeout(function() {
+            console.log('incognito mode !!!');
+            document.getElementById('incognito').innerHTML = 'incognito mode !!!';
+        }, 2000);
         return;
     }
-    document.getElementById('incognito').innerHTML = 'Normal mode';
-    console.log('normal mode');
+    setTimeout(function() {
+        document.getElementById('incognito').innerHTML = 'Normal mode';
+        console.log('normal mode');
+    }, 2000);
 };
   
 var BrowsingModeDetector = new BrowsingModeDetector();
