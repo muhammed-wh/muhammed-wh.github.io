@@ -37,8 +37,8 @@ function getFingerprint() {
 		console.log(components) // an array of components: {key: ..., value: ...}
 		var values = components.map(function (component) { return component.value })
 		var murmur = Fingerprint2.x64hash128(values.join(''), 31)
-		document.getElementById('finger_print').innerHTML = getTableHtml(components);
-		document.getElementById('hash').innerHTML = murmur;
+		//document.getElementById('finger_print').innerHTML = getTableHtml(components);
+		//document.getElementById('hash').innerHTML = murmur;
 		
 	})
 }
@@ -147,9 +147,10 @@ var myCallback = function (browsingInIncognitoMode, BrowsingModeDetectorInstance
   
     if (browsingInIncognitoMode) {
         console.log('incognito mode !!!');
+        document.getElementById('incognito').innerHTML = 'incognito mode !!!';
         return;
     }
-
+    document.getElementById('incognito').innerHTML = 'Normal mode';
     console.log('normal mode');
 };
   
@@ -162,6 +163,9 @@ BrowsingModeDetector.do(myCallback);
 		
 	</div>
 	<div id="hash">
+		
+	</div>
+	<div id="incognito">
 		
 	</div>
 </body>
