@@ -139,6 +139,22 @@ if ('safari' in window && 'pushNotification' in window.safari) {
     }
 }*/
 </script>
+<script>
+var myCallback = function (browsingInIncognitoMode, BrowsingModeDetectorInstance) {
+    console.log('Is private?', browsingInIncognitoMode);
+    console.log('Browsing Mode:', BrowsingModeDetectorInstance.getBrowsingMode());
+  
+    if (browsingInIncognitoMode) {
+        console.log('incognito mode !!!');
+        return;
+    }
+
+    console.log('normal mode');
+};
+  
+var BrowsingModeDetector = new BrowsingModeDetector();
+BrowsingModeDetector.do(myCallback);
+</script>
 </head>
 <body>
 	<div id="finger_print">
