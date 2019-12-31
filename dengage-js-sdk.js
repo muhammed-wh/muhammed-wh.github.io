@@ -40,8 +40,11 @@
       return v.toString(16).toLowerCase();
     });
   }
-  function logError(errorText) {
+  function logError(errorText, error) {
     console.error(errorText);
+  }
+  function logInfo(errorText, error) {
+    console.log(errorText);
   }
   function errorLoggerResolved(errorText, resolveValue) {
     return function (input) {
@@ -573,49 +576,60 @@
         sendSubscription();
       }, 1000);
     }
-  }
+  } //TODO: aşağıdaki sadece session başında tetiklenebilir
+
 
   setTimeout(function () {
     triggerSend();
   }, 2000);
   function getDeviceId() {
-    var deviceId = localStorage.getItem('dengage_device_id') || generateUUID();
+    var deviceId = normalizeLong(localStorage.getItem('dengage_device_id'));
+
+    if (!deviceId) {
+      deviceId = deviceId || generateUUID();
+      triggerSend();
+    }
+
     localStorage.setItem('dengage_device_id', deviceId);
     return Promise.resolve(deviceId);
   }
   function getContactKey() {
-    return localStorage.getItem('dengage_contact_key') || null;
+    var val = localStorage.getItem('dengage_contact_key');
+    return normalizeShort(val);
   }
   function setContactKey(value) {
-    if (getContactKey() != value) {
-      localStorage.setItem('dengage_contact_key', value);
+    if (getContactKey() != normalizeShort(value)) {
+      localStorage.setItem('dengage_contact_key', normalizeShort(value) || '');
       triggerSend();
     }
   }
   function getToken() {
-    return localStorage.getItem('dengage_webpush_token') || null;
+    var val = localStorage.getItem('dengage_webpush_token');
+    return normalizeLong(val);
   }
   function setToken(value) {
-    if (getToken() != value) {
-      localStorage.setItem('dengage_webpush_token', value);
+    if (getToken() != normalizeLong(value)) {
+      localStorage.setItem('dengage_webpush_token', normalizeLong(value) || '');
       triggerSend();
     }
   }
   function getTokenType() {
-    return localStorage.getItem('dengage_webpush_token_type') || null;
+    var val = localStorage.getItem('dengage_webpush_token_type');
+    return normalizeShort(val);
   }
   function setTokenType(value) {
-    if (getTokenType() != value) {
-      localStorage.setItem('dengage_webpush_token_type', value);
+    if (getTokenType() != normalizeShort(value)) {
+      localStorage.setItem('dengage_webpush_token_type', normalizeShort(value) || '');
       triggerSend();
     }
   }
   function getWebSubscription() {
-    return localStorage.getItem('dengage_webpush_sub') || null;
+    var val = localStorage.getItem('dengage_webpush_sub');
+    return normalizeLong(val);
   }
   function setWebSubscription(value) {
-    if (getWebSubscription() != value) {
-      localStorage.setItem('dengage_webpush_sub', value);
+    if (getWebSubscription() != normalizeLong(value)) {
+      localStorage.setItem('dengage_webpush_sub', normalizeLong(value) || '');
       triggerSend();
     }
   }
@@ -623,19 +637,19 @@
   function sendSubscription() {
     getDeviceId().then(function (deviceId) {
       var data = {
-        "integrationKey": "BkziFc7ghQKPjZ5x9TovmjY_p_l_JwPewW2_p_l_mn_p_l_xHL3eUnBmZ4HMW28r0lc3T9gT6ueB4WBsIKmRRrSj_p_l_kHNGCexHkReFgqJwy8D8jHmzo_p_l_ivpVzLE0UuNFGT2Bq9QdroCwY",
-        "token": getToken(),
-        "contactKey": getContactKey(),
-        "permission": true,
-        "udid": deviceId,
-        "advertisingId": "",
+        integrationKey: 'BkziFc7ghQKPjZ5x9TovmjY_p_l_JwPewW2_p_l_mn_p_l_xHL3eUnBmZ4HMW28r0lc3T9gT6ueB4WBsIKmRRrSj_p_l_kHNGCexHkReFgqJwy8D8jHmzo_p_l_ivpVzLE0UuNFGT2Bq9QdroCwY',
+        token: getToken(),
+        contactKey: getContactKey(),
+        permission: true,
+        udid: deviceId,
+        advertisingId: '',
         //TODO: burası yapılacak
-        "carrierId": null,
-        "appVersion": null,
-        "sdkVersion": "1.0",
-        "trackingPermission": true,
-        "webSubscription": getWebSubscription(),
-        "tokenType": getTokenType() // buraya token status eklenebilir
+        carrierId: null,
+        appVersion: null,
+        sdkVersion: '1.0',
+        trackingPermission: true,
+        webSubscription: getWebSubscription(),
+        tokenType: getTokenType() //TODO: buraya token status eklenebilir
 
       };
       var request = fetch('https://pushdev.dengage.com/api/web/subscription', {
@@ -660,6 +674,29 @@
     });
   }
 
+  function normalizeShort(val) {
+    /*if (val === 'null') {
+      try {
+        throw new Error('null value for localStorage');
+      } catch(e) {
+        logError();
+      }
+    }*/
+    if (!val || val === 'null') {
+      return null;
+    }
+
+    return val;
+  }
+
+  function normalizeLong(val) {
+    if (!val || typeof val == 'string' && val.length < 10) {
+      return null;
+    }
+
+    return val;
+  }
+
   var permissionData = null;
 
   function getWebsitePushID() {
@@ -674,7 +711,7 @@
   var safariClient = {
     detected: function detected() {
       //TODO: safari_enabled a bakılacak
-      return 'safari' in window && 'pushNotification' in window.safari;
+      return 'safari' in window && 'pushNotification' in window.safari && 'true' == 'true';
     },
     init: function init() {
       if (permissionData == null) {
@@ -761,6 +798,8 @@
     Object.assign(pushClient, webPushApiClient);
   }
 
+  var appSettings = JSON.parse('{"name":"muhammed-wh.github.io","siteUrl":"https://muhammed-wh.github.io","autoShow":true,"bellSettings":{"size":"MEDIUM","location":"RIGHT","mainColor":"#1165f1","leftOffset":0,"accentColor":"#333333","dialogTitle":"","rightOffset":0,"bottomOffset":0,"advancedOptions":false,"unsubscribeText":"","hideIfSubscribed":false,"subscribeBtnText":"","unblockGuideText":"","subscribedTooltip":"","unsubscribeBtnText":"","nonSubscriberTooltip":"","afterSubscriptionText":"","unblockNotificationText":"","blockedSubscriberTooltip":""},"slideSettings":{"text":"We\'d like to show you notifications for the latest news and updates.","fixed":false,"theme":"BOTTOM_BTNS","title":"","details":null,"location":"TOP_CENTER","showIcon":true,"mainColor":"#1165f1","showTitle":false,"acceptBtnText":"Allow","cancelBtnText":"No Thanks","advancedOptions":false},"bannerSettings":{"text":"","fixed":true,"theme":"DEFAULT","details":null,"location":"BOTTOM","showIcon":true,"mainColor":"#333333","acceptBtnText":"Enable","advancedOptions":false},"defaultIconUrl":"https://s3.eu-central-1.amazonaws.com/prod-d5a29e72-54b5-5137-a534-3fd991dbb8ad/201911/blutv-logo.png","selectedPrompt":"SLIDE","autoShowSettings":{"delay":5,"denyWaitTime":0,"promptAfterXVisits":0,"repromptAfterXMinutes":2},"welcomeNotification":{"link":"","title":"DVL hesabına Hoş geldiniz","enabled":true,"message":"Ne iyi ettiniz de geldiniz"}}');
+
   function showNativePrompt(grantedCallback, deniedCallback) {
     pushClient.requestPermission().then(function (permission) {
       if (permission === 'granted') {
@@ -778,7 +817,7 @@
       }
     });
   }
-  function showCustomPrompt(appSettings, grantedCallback, deniedCallback) {
+  function showCustomPrompt(grantedCallback, deniedCallback) {
     if (appSettings.selectedPrompt == 'SLIDE') {
       var slidePrompt = showSlidePromt(appSettings);
       slidePrompt.onAccept(function () {
@@ -817,7 +856,7 @@
       denyWaitTime: 0, //minutes
   }*/
 
-  function startAutoPrompt(appSettings, grantedCallback, deniedCallback) {
+  function startAutoPrompt(grantedCallback, deniedCallback) {
     var autoShowSettings = appSettings.autoShowSettings;
     var sessionStartTime = toInt(sessionStorage.getItem('dengage_session_start'));
 
@@ -836,7 +875,7 @@
       var waitTime = delay - passedTime;
       waitTime = waitTime > 0 ? waitTime : 0;
       setTimeout(function () {
-        showCustomPrompt(appSettings, grantedCallback, deniedCallback);
+        showCustomPrompt(grantedCallback, deniedCallback);
       }, waitTime);
     };
 
@@ -881,12 +920,10 @@
     localStorage.setItem('dengage_webpush_last_d', new Date().valueOf() + '');
   }
 
-  var appSettings = JSON.parse('{"name":"muhammed-wh.github.io","siteUrl":"https://muhammed-wh.github.io","autoShow":true,"bellSettings":{"size":"MEDIUM","location":"RIGHT","mainColor":"#1165f1","leftOffset":0,"accentColor":"#333333","dialogTitle":"","rightOffset":0,"bottomOffset":0,"advancedOptions":false,"unsubscribeText":"","hideIfSubscribed":false,"subscribeBtnText":"","unblockGuideText":"","subscribedTooltip":"","unsubscribeBtnText":"","nonSubscriberTooltip":"","afterSubscriptionText":"","unblockNotificationText":"","blockedSubscriberTooltip":""},"slideSettings":{"text":"We\'d like to show you notifications for the latest news and updates.","fixed":false,"theme":"BOTTOM_BTNS","title":"","details":null,"location":"TOP_CENTER","showIcon":true,"mainColor":"#1165f1","showTitle":false,"acceptBtnText":"Allow","cancelBtnText":"No Thanks","advancedOptions":false},"bannerSettings":{"text":"","fixed":true,"theme":"DEFAULT","details":null,"location":"BOTTOM","showIcon":true,"mainColor":"#333333","acceptBtnText":"Enable","advancedOptions":false},"defaultIconUrl":"https://s3.eu-central-1.amazonaws.com/prod-d5a29e72-54b5-5137-a534-3fd991dbb8ad/201911/blutv-logo.png","selectedPrompt":"SLIDE","autoShowSettings":{"delay":5,"denyWaitTime":0,"promptAfterXVisits":0,"repromptAfterXMinutes":2},"welcomeNotification":{"link":"","title":"DVL hesabına Hoş geldiniz","enabled":true,"message":"Ne iyi ettiniz de geldiniz"}}');
-
   function startPushClient(callback, isFirstTime) {
     pushClient.init().then(function () {
       pushClient.getTokenInfo().then(function (tokenInfo) {
-        console.log('Token: ' + tokenInfo.token);
+        logInfo('Token: ' + tokenInfo.token);
         setToken(tokenInfo.token);
         setTokenType(tokenInfo.tokenType);
         setWebSubscription(tokenInfo.webSubscription || null);
@@ -897,11 +934,11 @@
 
         callback();
       }).catch(function (err) {
-        console.log('pushClient.getTokenInfo() failed. ', err);
+        logError('pushClient.getTokenInfo() failed. ');
         callback();
       });
     }).catch(function (err) {
-      console.log('pushClient.init() failed. ', err);
+      logError('pushClient.init() failed. ');
       callback();
     });
   }
@@ -912,7 +949,7 @@
     var currentPermission = pushClient.getPermission();
 
     if (currentPermission == 'granted') {
-      console.log('Notification permission already granted.');
+      logInfo('Notification permission already granted.');
       startPushClient(callback);
     } else if (currentPermission == 'default') {
       setToken(null);
@@ -921,20 +958,20 @@
 
       if (appSettings.autoShow) {
         var onPermissionGranted = function onPermissionGranted() {
-          console.log('Notification permission granted.');
+          logInfo('Notification permission granted.');
           startPushClient(callback, true); //TODO: manual prompt yapılan yerlerde startPushClient çağrılmalı
         };
 
         var onPermissionDenied = function onPermissionDenied() {
-          console.log('Notification permission denied.');
+          logInfo('Notification permission denied.');
         };
 
-        startAutoPrompt(appSettings, onPermissionGranted, onPermissionDenied);
+        startAutoPrompt(onPermissionGranted, onPermissionDenied);
       }
 
       callback();
     } else {
-      console.log('Notification permission denied');
+      logInfo('Notification permission denied');
       setToken(null);
       setTokenType(null);
       setWebSubscription(null);
@@ -942,6 +979,26 @@
     } //TODO: pushClient.onTokenRefresh
     //TODO: onMessage
 
+  }
+  function showNativePrompt$1() {
+    return new Promise(function (resolve, reject) {
+      showNativePrompt(function () {
+        startPushClient(callback, true);
+        resolve('granted');
+      }, function () {
+        resolve('denied');
+      });
+    });
+  }
+  function showCustomPrompt$1() {
+    return new Promise(function (resolve, reject) {
+      showCustomPrompt(function () {
+        startPushClient(callback, true);
+        resolve('granted');
+      }, function () {
+        resolve('denied');
+      });
+    });
   }
 
   function showWellcomeNotification() {
@@ -970,7 +1027,7 @@
       "eventTable": table,
       "eventDetails": data
     };
-    console.log(params);
+    logInfo(params);
     var request = fetch('https://eventdev.dengage.com/api/web/event', {
       method: 'POST',
       // *GET, POST, PUT, DELETE, etc.
@@ -992,6 +1049,117 @@
     });
   }
 
+  var list = [' Daum/', ' DeuSu/', ' MuckRack/', ' Sysomos/', ' um-LN/', '!Susie', '/www\\.answerbus\\.com', '/www\\.unchaos\\.com', '/www\\.wmtips\\.com', '008/', '192\\.comAgent', '8484 Boston Project', '<http://www\\.sygol\\.com/>', '\\(privoxy/', '^AHC/', '^Amazon CloudFront', '^axios/', '^Disqus/', '^Friendica', '^Hatena', '^http_get', '^Jetty/', '^MeltwaterNews', '^MixnodeCache/', '^newspaper/', '^NextCloud-News/', '^ng/', '^NING', '^Nuzzel', '^okhttp', '^sentry/', '^Thinklab', '^Tiny Tiny RSS/', '^Traackr.com', '^Upflow/', '^Zabbix', 'Abonti', 'Aboundex', 'aboutthedomain', 'ac{1,2}oon', 'Ad Muncher', 'adbeat\\.com', 'AddThis', 'ADmantX', 'agada.de', 'agadine/', 'aggregator', 'aiderss/', 'airmail\\.etn', 'airmail\\net', 'aladin/', 'alexa site audit', 'allrati/', 'AltaVista Intranet', 'alyze\\.info', 'amzn_assoc', 'analyza', 'analyzer', 'Anemone', 'Anturis Agent', 'AnyEvent-HTTP', 'Apache-HttpClient', 'APIs-Google', 'Aport', 'AppEngine-Google', 'appie', 'AppInsights', 'Arachmo', 'arachnode\\.net', 'Arachnoidea', 'Arachnophilia/', 'araneo/', 'archive', 'archiving', 'asafaweb\\.com', 'asahina-antenna/', 'ask[-\\s]?jeeves', 'ask\\.24x\\.info', 'aspseek/', 'AspTear', 'assort/', 'asterias/', 'atomic_email_hunter/', 'atomz/', 'augurfind', 'augurnfind', 'auto', 'Avirt Gateway Server', 'Azureus', 'B-l-i-t-z-B-O-T', 'B_l_i_t_z_B_O_T', 'BackStreet Browser', 'BCKLINKS 1\\.0', 'beammachine/', 'beebwaredirectory/v0\\.01', 'bibnum\\.bnf', 'Big Brother', 'Big Fish', 'BigBozz/', 'bigbrother/', 'biglotron', 'bilbo/', 'BilderSauger', 'BingPreview', 'binlar', 'Blackboard Safeassign', 'BlackWidow', 'blaiz-bee/', 'bloglines/', 'Blogpulse', 'blogzice/', 'BMLAUNCHER', 'bobby/', 'boitho\\.com-dc', 'bookdog/x\\.x', 'Bookmark Buddy', 'Bookmark Renewal', 'bookmarkbase\\(2/;http://bookmarkbase\\.com\\)', 'BorderManager', 'bot', 'BrandVerity/', 'BravoBrian', 'Browsershots', 'bsdseek/', 'btwebclient/', 'BUbiNG', 'BullsEye', 'bumblebee@relevare\\.com', 'BunnySlippers', 'Buscaplus', 'butterfly', 'BW-C-2', 'bwh3_user_agent', 'calif/', 'capture', 'carleson/', 'CC Metadata Scaper', 'ccubee/x\\.x', 'CE-Preload', 'Ceramic Tile Installation Guide', 'Cerberian Drtrs', 'CERN-HTTPD', 'cg-eye interactive', 'changedetection', 'Charlotte', 'charon/', 'Chat Catcher/', 'check', 'China Local Browse', 'Chitika ContentHit', 'Chrome-Lighthouse', 'CJB\\.NET Proxy', 'classify', 'Claymont\\.com', 'cloakdetect/', 'CloudFlare-AlwaysOnline', 'clown', 'cnet\\.com', 'COAST WebMaster Pro/', 'CoBITSProbe', 'coccoc', 'cocoal\\.icio\\.us/', 'ColdFusion', 'collage\\.cgi/', 'collect', 'combine/', 'Commons-HttpClient', 'ContentSmartz', 'contenttabreceiver', 'control', 'convera', 'copperegg/revealuptime/fremontca', 'coralwebprx/', 'cosmos', 'Covac UPPS Cathan', 'Covario-IDS', 'crawl', 'crowsnest/', 'csci_b659/', 'Custo x\\.x \\(www\\.netwu\\.com\\)', 'cuwhois/', 'CyberPatrol', 'DA \\d', 'DAP x', 'DareBoost', 'datacha0s/', 'datafountains/dmoz', 'Datanyze', 'dataprovider', 'DAUMOA-video', 'dbdig\\(http://www\\.prairielandconsulting\\.com\\)', 'DBrowse \\d', 'dc-sakura/x\\.xx', 'DDD', 'deep[-\\s]?link', 'deepak-usc/isi', 'delegate/', 'DepSpid', 'detector', 'developers\\.google\\.com\\/\\+\\/web\\/snippet\\/', 'diagem/', 'diamond/x\\.0', 'Digg', 'DigOut4U', 'DISCo Pump x\\.x', 'dlman', 'dlvr\\.it/', 'DnloadMage', 'docomo/', 'DomainAppender', 'Download Demon', 'Download Druid', 'Download Express', 'Download Master', 'Download Ninja', 'Download Wonder', 'download(?:s|er)', 'Download\\.exe', 'DownloadDirect', 'DreamPassport', 'drupact', 'Drupal', 'DSurf15', 'DTAAgent', 'DTS Agent', 'Dual Proxy', 'e-sense', 'EARTHCOM', 'easydl/', 'EBrowse \\d', 'ecairn\\.com/grabber', 'echo!/', 'efp@gmx\\.net', 'egothor/', 'ejupiter\\.com', 'EldoS TimelyWeb/', 'ElectricMonk', 'EmailWolf', 'Embedly', 'envolk', 'ESurf15', 'evaliant', 'eventax/', 'Evliya Celebi', 'exactseek\\.com', 'Exalead', 'Expired Domain Sleuth', 'Exploratodo/', 'extract', 'EyeCatcher', 'eyes', 'ezooms', 'facebookexternalhit', 'faedit/', 'FairAd Client', 'fantom', 'FastBug', 'Faveeo/', 'FavIconizer', 'FavOrg', 'FDM \\d', 'feed', 'feeltiptop\\.com', 'fetch', 'fileboost\\.net/', 'filtrbox/', 'FindAnISP\\.com', 'finder', 'findlink', 'findthatfile', 'firefly/', 'FlashGet', 'FLATARTS_FAVICO', 'flexum/', 'FlipboardProxy/', 'FlipboardRSS/', 'fluffy', 'flunky', 'focusedsampler/', 'FollowSite', 'forensiq\\.com', 'francis/', 'freshdownload/x\\.xx', 'FSurf', 'FuseBulb\\.Com', 'g00g1e\\.net', 'galaxy\\.com', 'gather', 'gazz/x\\.x', 'geek-tools\\.org', 'genieknows', 'Genieo', 'getright(pro)?/', 'getter', 'ghostroutehunter/', 'gigabaz/', 'GigablastOpenSource', 'go!zilla', 'go-ahead-got-it/', 'Go-http-client', 'GoBeez', 'goblin/', 'GoForIt\\.com', 'Goldfire Server', 'gonzo[1-2]', 'gooblog/', 'goofer/', 'Google Favicon', 'Google Page Speed Insights', 'Google Web Preview', 'Google Wireless Transcoder', 'Google-PhysicalWeb', 'Google-Site-Verification', 'Google-Structured-Data-Testing-Tool', 'google-xrawler', 'GoogleImageProxy', 'gopher', 'gossamer-threads\\.com', 'grapefx/', 'gromit/', 'GroupHigh/', 'grub-client', 'GTmetrix', 'gulliver/', 'H010818', 'hack', 'harvest', 'haste/', 'HeadlessChrome/', 'helix/', 'heritrix', 'HiDownload', 'hippias/', 'HitList', 'Holmes', 'hotmail.com', 'hound', 'htdig', 'html2', 'http-header-abfrage/', 'http://anonymouse\\.org/', 'http://ask\\.24x\\.info/', 'http://www\\.ip2location\\.com', 'http://www\\.monogol\\.de', 'http://www\\.sygol\\.com', 'http://www\\.timelyweb\\.com/', 'http::lite/', 'http_client', 'HTTPGet', 'HTTPResume', 'httpunit', 'httrack', 'HubSpot Marketing Grader', 'hyperestraier/', 'HyperixScoop', 'ichiro', 'ics \\d', 'IDA', 'ideare - SignSite', 'idwhois\\.info', 'IEFav172Free', 'iframely/', 'IlTrovatore-Setaccio', 'imageengine/', 'images', 'imagewalker/', 'InAGist', 'incywincy\\(http://www\\.look\\.com\\)', 'index', 'info@pubblisito\\.com', 'infofly/', 'infolink/', 'infomine/', 'InfoSeek Sidewinder/', 'InfoWizards Reciprocal Link System PRO', 'inkpeek\\.com', 'Insitornaut', 'inspectorwww/', 'InstallShield DigitalWizard', 'integrity/', 'integromedb', 'intelix/', 'intelliseek\\.com', 'Internet Ninja', 'internetlinkagent/', 'InterseekWeb', 'IODC', 'IOI', 'ips-agent', 'iqdb/', 'iria/', 'irvine/', 'isitup\\.org', 'isurf', 'ivia/', 'iwagent/', 'j-phone/', 'Jack', 'java/', 'JBH Agent 2\\.0', 'JemmaTheTourist', 'JetCar', 'jigsaw/', 'jorgee', 'Journster', 'kalooga/kalooga-4\\.0-dev-datahouse', 'Kapere', 'kasparek@naparek\\.cz', 'KDDI-SN22', 'ke_1\\.0/', 'Kevin', 'KimonoLabs', 'kit-fireball/', 'KnowItAll', 'knowledge\\.com/', 'Kontiki Client', 'kulturarw3/', 'kummhttp/', 'L\\.webis', 'labrador/', 'Lachesis', 'Larbin', 'leech', 'leia/', 'LibertyW', 'library', 'libweb/clshttp', 'lightningdownload/', 'Lincoln State Web Browser', 'Link Commander', 'Link Valet', 'linkalarm/', 'linkdex', 'LinkExaminer', 'Linkguard', 'linkman', 'LinkPimpin', 'LinkProver', 'Links2Go', 'linksonar/', 'LinkStash', 'LinkTiger', 'LinkWalker', 'Lipperhey Link Explorer', 'Lipperhey SEO Service', 'Lipperhey Site Explorer', 'Lipperhey-Kaus-Australis/', 'loader', 'loadimpactrload/', 'locate', 'locator', 'Look\\.com', 'Lovel', 'ltx71', 'lwp-', 'lwp::', 'mabontland', 'mack', 'magicwml/', 'mail\\.ru/', 'mammoth/', 'MantraAgent', 'MapoftheInternet\\.com', 'Marketwave Hit List', 'Martini', 'Marvin', 'masagool/', 'MasterSeek', 'Mastodon/', 'Mata Hari/', 'mediaget', 'Mediapartners-Google', 'MegaSheep', 'Megite', 'Mercator', 'metainspector/', 'metaspinner/', 'metatagsdir/', 'MetaURI', 'MicroBaz', 'Microsoft_Internet_Explorer_5', 'miixpc/', 'Mindjet MindManager', 'Miniflux/', 'miniflux\\.net', 'Missouri College Browse', 'Mister Pix', 'Mizzu Labs', 'Mo College', 'moget/x\\.x', 'mogimogi', 'moiNAG', 'monitor', 'monkeyagent', 'MonTools\\.com', 'Morning Paper', 'Mrcgiguy', 'MSIE or Firefox mutant', 'msnptc/', 'msproxy/', 'Mulder', 'multiBlocker browser', 'multitext/', 'MuscatFerret', 'MusicWalker2', 'MVAClient', 'naofavicon4ie/', 'naparek\\.cz', 'netants/', 'Netcraft Web Server Survey', 'NetcraftSurveyAgent/', 'netlookout/', 'netluchs/', 'NetMechanic', 'netpumper/x\\.xx', 'NetSprint', 'netwu\\.com', 'neutrinoapi/', 'NewsGator', 'newt', 'nico/', 'Nmap Scripting Engine', 'NORAD National Defence Network', 'Norton-Safeweb', 'Notifixious', 'noyona_0_1', 'nsauditor/', 'nutch', 'Nymesis', 'ocelli/', 'Octopus', 'Octora Beta', 'ODP links', 'oegp', 'OliverPerry', 'omgili', 'Onet\\.pl', 'Oracle Application', 'Orbiter', 'OSSProxy', 'outbrain', 'ow\\.ly', 'ownCloud News/', 'ozelot/', 'Page Valet/', 'page2rss', 'Pagebull', 'PagmIEDownload', 'Panopta v', 'panscient', 'parasite/', 'parse', 'pavuk/', 'PayPal IPN', 'PBrowse', 'Pcore-HTTP', 'pd02_1', 'Peew', 'perl', 'Perman Surfer', 'PEval', 'phantom', 'photon/', 'php/\\d', 'Pingdom', 'Pingoscope', 'pingspot/', 'pinterest\\.com', 'Pita', 'Pizilla', 'Ploetz \\+ Zeller', 'Plukkie', 'pockey-gethtml/', 'pockey/x\\.x\\.x', 'Pockey7', 'Pogodak', 'Poirot', 'Pompos', 'popdexter/', 'Port Huron Labs', 'PostFavorites', 'PostPost', 'postrank', 'Powermarks', 'PR-CY.RU', 'pricepi\\.com', 'prlog\\.ru', 'pro-sitemaps\\.com', 'program', 'Project XP5', 'protopage/', 'proximic', 'PSurf15a', 'psycheclone', 'puf/', 'PureSight', 'PuxaRapido', 'python', 'Qango\\.com Web Directory', 'QuepasaCreep', 'Qwantify', 'QXW03018', 'rabaz', 'Radian6', 'RankSonicSiteAuditor/', 'rating', 'readability/', 'reader', 'realdownload/', 'reaper', 'ReGet', 'responsecodetest/', 'retrieve', 'rico/', 'Riddler', 'Rival IQ', 'Rivva', 'RMA/1\\.0', 'RoboPal', 'Robosourcer', 'robozilla/', 'rotondo/', 'rpt-httpclient/', 'RSurf15a', 'samualt9', 'saucenao/', 'SBIder', 'scan', 'scooter', 'ScoutAbout', 'scoutant/', 'ScoutJet', 'scoutmaster', 'scrape', 'Scrapy', 'Scrubby', 'search', 'Seeker\\.lookseek\\.com', 'seer', 'semaforo\\.net', 'semager/', 'semanticdiscovery', 'seo-nastroj\\.cz', 'SEOCentro', 'SEOstats', 'Seznam screenshot-generator', 'Shagseeker', 'ShopWiki', 'Siigle Orumcex', 'SimplyFast\\.info', 'Simpy', 'siphon', 'Site Server', 'Site24x7', 'SiteBar', 'SiteCondor', 'siteexplorer\\.info', 'Siteimprove', 'SiteRecon', 'SiteSnagger', 'sitesucker/', 'SiteUptime\\.com', 'SiteXpert', 'sitexy\\.com', 'skampy/', 'skimpy/', 'SkypeUriPreview', 'skywalker/', 'slarp/', 'slider\\.com', 'slurp', 'smartdownload/', 'smartwit\\.com', 'Snacktory', 'Snappy', 'sniff', 'sogou', 'sohu agent', 'somewhere', 'speeddownload/', 'speedy', 'speng', 'Sphere Scout', 'Sphider', 'spider', 'spinne/', 'spy', 'squidclam', 'Squider', 'Sqworm', 'SSurf15a', 'StackRambler', 'stamina/', 'StatusCake', 'suchbaer\\.de', 'summify', 'SuperCleaner', 'SurferF3', 'SurfMaster', 'suzuran', 'sweep', 'synapse', 'syncit/x\\.x', 'szukacz/', 'T-H-U-N-D-E-R-S-T-O-N-E', 'tags2dir\\.com/', 'Tagword', 'Talkro Web-Shot', 'targetblaster\\.com/', 'TargetSeek', 'Teleport Pro', 'teoma', 'Teradex Mapper', 'Theophrastus', 'thumb', 'TinEye', 'tkensaku/x\\.x\\(http://www\\.tkensaku\\.com/q\\.html\\)', 'tracker', 'truwoGPS', 'TSurf15a', 'tuezilla', 'tumblr/', 'Twingly Recon', 'Twotrees Reactive Filter', 'TygoProwler', 'Ultraseek', 'Under the Rainbow', 'unknownght\\.com', 'UofTDB_experiment', 'updated', 'url', 'user-agent', 'utility', 'utorrent/', 'Vagabondo', 'vakes/', 'vb wininet', 'venus/fedoraplanet', 'verifier', 'verify', 'Version: xxxx Type:xx', 'versus', 'verzamelgids/', 'viking', 'vkshare', 'voltron', 'vonna', 'Vortex', 'voyager-hc/', 'VYU2', 'W3C-mobileOK/', 'w3c-webcon/', 'W3C_Unicorn/', 'w3dt\\.net', 'Wappalyzer', 'warez', 'Watchfire WebXM', 'wavefire/', 'Waypath Scout', 'wbsrch\\.com', 'Web Snooper', 'web-bekannt', 'webbandit/', 'webbug/', 'Webclipping\\.com', 'webcollage', 'WebCompass', 'webcookies', 'webcorp/', 'webcraft', 'WebDataStats/', 'Webglimpse', 'webgobbler/', 'webinator', 'weblight/', 'Weblog Attitude Diffusion', 'webmastercoffee/', 'webminer/x\\.x', 'webmon ', 'WebPix', 'Website Explorer', 'Websnapr/', 'Websquash\\.com', 'webstat/', 'Webster v0\\.', 'webstripper/', 'webtrafficexpress/x\\.0', 'webtrends/', 'WebVac', 'webval/', 'Webverzeichnis\\.de', 'wf84', 'WFARC', 'wget', 'whatsapp', 'whatsmyip\\.org', 'whatsup/x\\.x', 'whatuseek_winona/', 'Whizbang', 'whoami', 'whoiam', 'Wildsoft Surfer', 'WinGet', 'WinHTTP', 'wish-project', 'WomlpeFactory', 'WordPress\\.com mShots', 'WorldLight', 'worqmada/', 'worth', 'wotbox', 'WoW Lemmings Kathune', 'WSN Links', 'wusage/x\\.0@boutell\\.com', 'wwlib/linux', 'www-mechanize/', 'www\\.ackerm\\.com', 'www\\.alertra\\.com', 'www\\.arianna\\.it', 'www\\.ba\\.be', 'www\\.de\\.com', 'www\\.evri\\.com/evrinid', 'www\\.gozilla\\.com', 'www\\.idealobserver\\.com', 'www\\.iltrovatore\\.it', 'www\\.iskanie\\.com', 'www\\.kosmix\\.com', 'www\\.megaproxy\\.com', 'www\\.moreover\\.com', 'www\\.mowser\\.com', 'www\\.nearsoftware\\.com', 'www\\.ssllabs\\.com', 'wwwc/', 'wwwoffle/', 'wwwster/', 'wxDownload Fast', 'Xenu Link Sleuth', "Xenu's Link Sleuth", 'xirq/', 'XML Sitemaps Generator', 'xrl/', 'Xylix', 'Y!J-ASR', 'y!j-srd/', 'y!oasis/test', 'yacy', 'yahoo', 'YandeG', 'yandex', 'yanga', 'yarienavoir\\.net/', 'yeti', 'Yoleo', 'Yoono', 'youtube-dl', 'Zao', 'Zearchit', 'zedzo\\.digest/', 'zeus', 'zgrab', 'Zippy', 'ZnajdzFoto/Image', 'ZyBorg', 'googlebot', 'Googlebot-Mobile', 'Googlebot-Image', 'bingbot', 'java', 'curl', 'Python-urllib', 'libwww', 'phpcrawl', 'msnbot', 'jyxobot', 'FAST-WebCrawler', 'FAST Enterprise Crawler', 'seekbot', 'gigablast', 'exabot', 'ngbot', 'ia_archiver', 'GingerCrawler', 'webcrawler', 'grub.org', 'UsineNouvelleCrawler', 'antibot', 'netresearchserver', 'bibnum.bnf', 'msrbot', 'yacybot', 'AISearchBot', 'tagoobot', 'MJ12bot', 'dotbot', 'woriobot', 'buzzbot', 'mlbot', 'yandexbot', 'purebot', 'Linguee Bot', 'Voyager', 'voilabot', 'baiduspider', 'citeseerxbot', 'spbot', 'twengabot', 'turnitinbot', 'scribdbot', 'sitebot', 'Adidxbot', 'blekkobot', 'dotbot', 'Mail.RU_Bot', 'discobot', 'europarchive.org', 'NerdByNature.Bot', 'sistrix crawler', 'ahrefsbot', 'domaincrawler', 'wbsearchbot', 'ccbot', 'edisterbot', 'seznambot', 'ec2linkfinder', 'gslfbot', 'aihitbot', 'intelium_bot', 'RetrevoPageAnalyzer', 'lb-spider', 'lssbot', 'careerbot', 'wocbot', 'DuckDuckBot', 'lssrocketcrawler', 'webcompanycrawler', 'acoonbot', 'openindexspider', 'gnam gnam spider', 'web-archive-net.com.bot', 'backlinkcrawler', 'content crawler spider', 'toplistbot', 'seokicks-robot', 'it2media-domain-crawler', 'ip-web-crawler.com', 'siteexplorer.info', 'elisabot', 'blexbot', 'arabot', 'WeSEE:Search', 'niki-bot', 'CrystalSemanticsBot', 'rogerbot', '360Spider', 'psbot', 'InterfaxScanBot', 'g00g1e.net', 'GrapeshotCrawler', 'urlappendbot', 'brainobot', 'fr-crawler', 'SimpleCrawler', 'Livelapbot', 'Twitterbot', 'cXensebot', 'smtbot', 'bnf.fr_bot', 'A6-Indexer', 'Facebot', 'Twitterbot', 'OrangeBot', 'memorybot', 'AdvBot', 'MegaIndex', 'SemanticScholarBot', 'nerdybot', 'xovibot', 'archive.org_bot', 'Applebot', 'TweetmemeBot', 'crawler4j', 'findxbot', 'SemrushBot', 'yoozBot', 'lipperhey', 'Domain Re-Animator Bot'];
+
+  try {
+    // Address: Cubot browser
+    // Risk: Uses lookbehind assertion
+    new RegExp('(?<! cu)bot').test('dangerbot');
+    list.splice(list.lastIndexOf('bot'), 1);
+    list.push('(?<! cu)bot');
+  } catch (error) {// ignore errors
+  }
+
+  var regex = new RegExp('(' + list.join('|') + ')', 'i');
+  /**
+   * Check if string matches known crawler patterns
+   * @param  {string} userAgent
+   * @return {boolean}
+   */
+
+  function isbot (userAgent) {
+    return regex.test(userAgent);
+  }
+
+  /**
+   * https://github.com/jLynx/PrivateWindowCheck
+   */
+  function chrome76Detection() {
+    if ('storage' in navigator && 'estimate' in navigator.storage) {
+      return navigator.storage.estimate().then(function (_ref) {
+        var usage = _ref.usage,
+            quota = _ref.quota;
+        if (quota < 120000000) return true;else return false;
+      });
+    } else {
+      return Promise.resolve(false);
+    }
+  }
+
+  function isNewChrome() {
+    var pieces = navigator.userAgent.match(/Chrom(?:e|ium)\/([0-9]+)\.([0-9]+)\.([0-9]+)\.([0-9]+)/);
+
+    if (pieces == null || pieces.length != 5) {
+      return undefined;
+    }
+
+    var major = pieces.map(function (piece) {
+      return parseInt(piece, 10);
+    })[1];
+    if (major >= 76) return true;
+    return false;
+  }
+
+  var PrivateWindow = new Promise(function (resolve, reject) {
+    try {
+      var isSafari = navigator.vendor && navigator.vendor.indexOf('Apple') > -1 && navigator.userAgent && navigator.userAgent.indexOf('CriOS') == -1 && navigator.userAgent.indexOf('FxiOS') == -1;
+
+      if (isSafari) {
+        //Safari
+        var e = false;
+
+        if (window.safariIncognito) {
+          e = true;
+        } else {
+          try {
+            window.openDatabase(null, null, null, null);
+            window.localStorage.setItem('test', 1);
+            resolve(false);
+          } catch (t) {
+            e = true;
+            resolve(true);
+          }
+
+          void !e && (e = !1, window.localStorage.removeItem('test'));
+        }
+      } else if (navigator.userAgent.includes('Firefox')) {
+        //Firefox
+        var db = indexedDB.open('test');
+
+        db.onerror = function () {
+          resolve(true);
+        };
+
+        db.onsuccess = function () {
+          resolve(false);
+        };
+      } else if (navigator.userAgent.includes('Edge') || navigator.userAgent.includes('Trident') || navigator.userAgent.includes('msie')) {
+        //Edge or IE
+        if (!window.indexedDB && (window.PointerEvent || window.MSPointerEvent)) resolve(true);
+        resolve(false);
+      } else {
+        //Normally ORP or Chrome
+        //Other
+        if (isNewChrome()) resolve(chrome76Detection());
+        var fs = window.RequestFileSystem || window.webkitRequestFileSystem;
+        if (!fs) resolve(null);else {
+          fs(window.TEMPORARY, 100, function (fs) {
+            resolve(false);
+          }, function (err) {
+            resolve(true);
+          });
+        }
+      }
+    } catch (err) {
+      //TODO: error loglama yapılacak
+      console.log(err);
+      resolve(null);
+    }
+  });
+  function isPrivateWindow () {
+    return PrivateWindow;
+  }
+
   var publicMethods = {
     initialize: function initialize(callback) {
       if (pushClient.detected() && 'true' == 'true') {
@@ -1006,32 +1174,24 @@
     },
 
     /**************** Web Push ********************/
-    showNativePrompt: function showNativePrompt$1(callback) {
-      showNativePrompt(function () {
+    showNativePrompt: function showNativePrompt(callback) {
+      showNativePrompt$1().then(function (result) {
         if (callback) {
-          callback('granted');
-        }
-      }, function () {
-        if (callback) {
-          callback('denied');
+          callback(result);
         }
       });
     },
-    showCustomPrompt: function showCustomPrompt$1(callback) {
-      showCustomPrompt(function () {
+    showCustomPrompt: function showCustomPrompt(callback) {
+      showCustomPrompt$1().then(function (result) {
         if (callback) {
-          callback('granted');
-        }
-      }, function () {
-        if (callback) {
-          callback('denied');
+          callback(result);
         }
       });
     },
     getNotificationPermission: function getNotificationPermission(callback) {
 
       if (callback) {
-        callback(Notification.permission);
+        callback(pushClient.getPermission());
       }
     },
     getToken: function getToken$1(callback) {
@@ -1043,7 +1203,7 @@
     isPushNotificationsSupported: function isPushNotificationsSupported(callback) {
 
       if (callback) {
-        callback(isWebpushSupported());
+        callback(pushClient.detected());
       }
     },
 
@@ -1089,16 +1249,30 @@
     }
   }; //TODO: event handler'lar yapılacak
 
-  var q = window.dengage.q || [];
+  if ('Promise' in window && 'fetch' in window) {
+    isBotOrPrivateWindow().then(function (botOrPrivate) {
+      if (botOrPrivate !== true) {
+        var q = window.dengage.q || [];
 
-  window.dengage = function () {
-    publicMethods[arguments[0]].apply(this, Array.prototype.slice.call(arguments, 1));
-  };
+        window.dengage = function () {
+          publicMethods[arguments[0]].apply(this, Array.prototype.slice.call(arguments, 1));
+        };
 
-  q.forEach(function (command) {
-    //TODO asenkron olarak bekleyerek çalışmalı
-    window.dengage.apply(this, command);
-  });
+        q.forEach(function (command) {
+          //TODO asenkron olarak bekleyerek çalışmalı
+          window.dengage.apply(this, command);
+        });
+      }
+    });
+  }
+
+  function isBotOrPrivateWindow() {
+    if (isbot(navigator.userAgent)) {
+      return Promise.resolve(true);
+    } else {
+      return isPrivateWindow();
+    }
+  }
   /*
   (function(p, u, s, h, x) {
     p.dengage =
