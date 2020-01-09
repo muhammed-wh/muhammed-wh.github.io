@@ -68,6 +68,17 @@
       return Promise.reject(rejectValue);
     };
   }
+  function arrayBufferToBase64(buffer) {
+    var binary = '';
+    var bytes = new Uint8Array(buffer);
+    var len = bytes.byteLength;
+
+    for (var i = 0; i < len; i++) {
+      binary += String.fromCharCode(bytes[i]);
+    }
+
+    return window.btoa(binary);
+  }
 
   function generateSlideHtml(appSettings) {
     var s = appSettings.slideSettings;
@@ -493,20 +504,28 @@
     return 'dn_' + sha256(subText);
   }
 
+  function subscribePush() {
+    var options = {
+      userVisibleOnly: true,
+      applicationServerKey: 'BJnJ_PO2DHLkWmn6ha4K4Ahwt4G7PolU7TA-w52UPT9A0eeWh4EEcT3dD9tSxwMciJDuDEc2ZbBDxBjawExj4KM'
+    };
+    return registration.pushManager.subscribe(options).then(function (newSubscription) {
+      webSubscription = JSON.stringify(newSubscription);
+      token = generateToken(newSubscription);
+    }, errorLoggerRejected('pushManager.subscribe failed'));
+  }
+
   function refreshSubscription(registration) {
     return registration.pushManager.getSubscription().then(function (subscription) {
       if (subscription) {
-        webSubscription = JSON.stringify(subscription);
-        token = generateToken(subscription);
+        if (arrayBufferToBase64(subscription.options.applicationServerKey) == 'BJnJ_PO2DHLkWmn6ha4K4Ahwt4G7PolU7TA-w52UPT9A0eeWh4EEcT3dD9tSxwMciJDuDEc2ZbBDxBjawExj4KM') {
+          webSubscription = JSON.stringify(subscription);
+          token = generateToken(subscription);
+        } else {
+          return subscription.unsubscribe().then(subscribePush);
+        }
       } else {
-        var options = {
-          userVisibleOnly: true,
-          applicationServerKey: 'BJnJ_PO2DHLkWmn6ha4K4Ahwt4G7PolU7TA-w52UPT9A0eeWh4EEcT3dD9tSxwMciJDuDEc2ZbBDxBjawExj4KM'
-        };
-        return registration.pushManager.subscribe(options).then(function (newSubscription) {
-          webSubscription = JSON.stringify(newSubscription);
-          token = generateToken(newSubscription);
-        }, errorLoggerRejected('pushManager.subscribe failed'));
+        return subscribePush();
       }
     }, errorLoggerRejected('getSubscription failed'));
   }
@@ -565,7 +584,7 @@
     }
   };
 
-  var sentDate = sessionStorage.getItem('subscription_sent_d');
+  var isSubscriptionSent = !!sessionStorage.getItem('dengage_subscription_sent');
   var aboutToSend = false;
 
   function triggerSend() {
@@ -576,11 +595,12 @@
         sendSubscription();
       }, 1000);
     }
-  } //TODO: aşağıdaki sadece session başında tetiklenebilir
-
+  }
 
   setTimeout(function () {
-    triggerSend();
+    if (isSubscriptionSent == false) {
+      triggerSend();
+    }
   }, 2000);
   function getDeviceId() {
     var deviceId = normalizeLong(localStorage.getItem('dengage_device_id'));
@@ -635,6 +655,8 @@
   }
 
   function sendSubscription() {
+    isSubscriptionSent = true;
+    sessionStorage.setItem('dengage_subscription_sent', 'true');
     getDeviceId().then(function (deviceId) {
       var data = {
         integrationKey: 'BkziFc7ghQKPjZ5x9TovmjY_p_l_JwPewW2_p_l_mn_p_l_xHL3eUnBmZ4HMW28r0lc3T9gT6ueB4WBsIKmRRrSj_p_l_kHNGCexHkReFgqJwy8D8jHmzo_p_l_ivpVzLE0UuNFGT2Bq9QdroCwY',
@@ -920,6 +942,44 @@
     localStorage.setItem('dengage_webpush_last_d', new Date().valueOf() + '');
   }
 
+  /**
+   * Direk basit bir notifikasyon gösterir
+   * 
+   * @param {object} data 
+   * Gösterilecek notifikasyon ile ilgili bilgileri içerir
+   * { title, iconUrl, message, mediaUrl, badgeUrl, targetUrl }
+   */
+
+  function showNotificationSimple(data, registration) {
+    var title = data.title;
+    var iconUrl = data.iconUrl == 'default_icon' ? appSettings.defaultIconUrl : (data.iconUrl || '').trim();
+    var options = {
+      body: data.message,
+      requireInteraction: true
+    };
+
+    if (data.mediaUrl) {
+      options.image = data.mediaUrl;
+    }
+
+    if (iconUrl) {
+      options.icon = iconUrl;
+    }
+
+    if (data.badgeUrl) {
+      options.badge = data.badgeUrl;
+    }
+
+    var notif = new Notification(title, options);
+
+    if (data.targetUrl) {
+      notif.onclick = function (event) {
+        event.notification.close();
+        window.open(data.targetUrl);
+      };
+    }
+  }
+
   function startPushClient(callback, isFirstTime) {
     pushClient.init().then(function () {
       pushClient.getTokenInfo().then(function (tokenInfo) {
@@ -1004,18 +1064,12 @@
   function showWellcomeNotification() {
     if (appSettings.welcomeNotification.enabled) {
       setTimeout(function () {
-        var title = appSettings.welcomeNotification.title || 'Wellcome';
-        var options = {
-          body: appSettings.welcomeNotification.message || ''
+        var data = {
+          title: appSettings.welcomeNotification.title,
+          message: appSettings.welcomeNotification.message,
+          targetUrl: appSettings.welcomeNotification.link
         };
-        var notif = new Notification(title, options);
-
-        if (appSettings.welcomeNotification.link) {
-          notif.onclick = function (event) {
-            event.notification.close();
-            window.open(appSettings.welcomeNotification.link);
-          };
-        }
+        showNotificationSimple(data);
       }, 500);
     }
   }
