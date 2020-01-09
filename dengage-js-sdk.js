@@ -504,7 +504,7 @@
     return 'dn_' + sha256(subText);
   }
 
-  function subscribePush() {
+  function subscribePush(registration) {
     var options = {
       userVisibleOnly: true,
       applicationServerKey: 'BJnJ_PO2DHLkWmn6ha4K4Ahwt4G7PolU7TA-w52UPT9A0eeWh4EEcT3dD9tSxwMciJDuDEc2ZbBDxBjawExj4KM'
@@ -522,10 +522,15 @@
           webSubscription = JSON.stringify(subscription);
           token = generateToken(subscription);
         } else {
-          return subscription.unsubscribe().then(subscribePush);
+          return subscription.unsubscribe().then(function () {
+            return subscribePush(registration);
+          }).catch(function () {
+            logError('subscription.unsubscribe() failed');
+            return subscribePush(registration);
+          });
         }
       } else {
-        return subscribePush();
+        return subscribePush(registration);
       }
     }, errorLoggerRejected('getSubscription failed'));
   }
@@ -541,10 +546,11 @@
         return navigator.serviceWorker.register('/dengage-webpush-sw.js', {
           updateViaCache: 'none'
         }).then(function () {
+          //TODO: on refresh token
           // chrome register yapınca hemen ready olmuyor
           return navigator.serviceWorker.ready.then(function (registration) {
             return refreshSubscription(registration);
-          }).catch(errorLoggerRejected('serviceWorker.ready failed')); //TODO: on refresh token
+          }, errorLoggerRejected('serviceWorker.ready failed'));
         }, errorLoggerRejected('An error occurred while registering service worker'));
       } else {
         logError('init called when permission is not granted');
