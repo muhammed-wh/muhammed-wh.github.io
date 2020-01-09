@@ -52,13 +52,13 @@
       }
     }
 
-    return self.registration.showNotification(title, options);
+    return registration.showNotification(title, options);
   }
 
   var firebaseConfig = {
     apiKey: "AIzaSyDbzYdx1P-_2QBUZbt8d9Zexb6Fk8fugZ8",
     projectId: "webpush-deneme",
-    messagingSenderId: "992812112924",
+    messagingSenderId: "##FIREBASE_SENDER_ID##",
     appId: "1:992812112924:web:4cc16aaa4afdefb94c13d9"
   };
   var fb = firebase.initializeApp(firebaseConfig);
@@ -66,7 +66,7 @@
   messaging.setBackgroundMessageHandler(function (payload) {
     console.log("[dengage-webpush-sw.js] Received message ", payload);
     var data = payload.data;
-    return showNotificationWithSw(data);
+    return showNotificationWithSw(data, self.registration);
   });
   self.addEventListener('notificationclick', function (event) {
     // Android doesn't close the notification when you click on it  
