@@ -503,6 +503,7 @@
     }, errorLoggerRejected('serviceWorker.ready failed on onMessageHandler. '));
   }
 
+  window.onMessageHandler = onMessageHandler;
   var webPushApiClient = {
     detected: function detected() {
       return 'serviceWorker' in navigator && 'PushManager' in window;
