@@ -57,53 +57,11 @@ function getFingerprint() {
 	</script>
 
 
-<script>
-      /*(function(p, u, s, h, x) {
-        p.pushpad =
-          p.pushpad ||
-          function() {
-            (p.pushpad.q = p.pushpad.q || []).push(arguments);
-          };
-        h = u.getElementsByTagName('head')[0];
-        x = u.createElement('script');
-        x.async = 1;
-        x.src = s;
-        h.appendChild(x);
-      })(window, document, 'https://pushpad.xyz/pushpad.js');*/
-
-	function sendEvent(table, data) {
-		var deviceId = localStorage.getItem('dengage_device_id') || generateUUID();
-    	localStorage.setItem('dengage_device_id', deviceId);
-		var params = {
-			"accountId": "82e7e586-5efa-ef76-7663-1413870c3b76",
-			"key": deviceId,
-			"eventTable": table,
-			"eventDetails": data
-		};
-		console.log(params);
-		var request = fetch('https://eventdev.dengage.com/api/web/event', {
-			method: 'POST', // *GET, POST, PUT, DELETE, etc.
-			mode: 'cors', // no-cors, *cors, same-origin
-			cache: 'no-cache', // *default, no-cache, reload, force-cache, only-if-cached
-			credentials: 'omit', // include, *same-origin, omit
-			headers: { 'Content-Type': 'text/plain' },
-			redirect: 'follow', // manual, *follow, error
-			referrer: 'no-referrer', // no-referrer, *client
-			body: JSON.stringify(params) // body data type must match "Content-Type" header
-		});
-	}
-	/*window.onload = function() {
-		sendEvent('big_data_20191026', {
-			column1: 'muh_deneme'
-		});
-	};*/
-
-		</script>
 
 <script>
-  !function(e,a,n,d,g){e.dengage=e.dengage||function(){(e.dengage.q=e.dengage.q||[]).push(arguments)},d=a.getElementsByTagName("head")[0],(g=a.createElement("script")).async=1,g.src="dengage-js-sdk.js",d.appendChild(g)}(window,document);
+/*  !function(e,a,n,d,g){e.dengage=e.dengage||function(){(e.dengage.q=e.dengage.q||[]).push(arguments)},d=a.getElementsByTagName("head")[0],(g=a.createElement("script")).async=1,g.src="dengage-js-sdk.js",d.appendChild(g)}(window,document);
 
-  dengage('initialize');
+  dengage('initialize');*/
 </script>
 
 
@@ -139,6 +97,15 @@ if ('safari' in window && 'pushNotification' in window.safari) {
 
     }
 }*/
+</script>
+<script src="https://cdn.onesignal.com/sdks/OneSignalSDK.js" async=""></script>
+<script>
+  var OneSignal = window.OneSignal || [];
+  OneSignal.push(function() {
+    OneSignal.init({
+      appId: "b06c1d6e-d224-4798-9033-2c1b66ac8a96",
+    });
+  });
 </script>
 </head>
 <body>
