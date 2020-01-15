@@ -74,7 +74,7 @@
     event.notification.close();
 
     if (event.notification.data.targetUrl) {
-      event.waitUntil(clients.openWindow(event.notification.data.targetUrl));
+      event.waitUntil(self.clients.openWindow(event.notification.data.targetUrl));
     }
   });
 
