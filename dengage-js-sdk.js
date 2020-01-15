@@ -391,51 +391,33 @@
 
   var appSettings = JSON.parse('{"name":"muhammed-wh.github.io","siteUrl":"https://muhammed-wh.github.io","autoShow":true,"bellSettings":{"size":"MEDIUM","location":"RIGHT","mainColor":"#1165f1","leftOffset":0,"accentColor":"#333333","dialogTitle":"","rightOffset":0,"bottomOffset":0,"advancedOptions":false,"unsubscribeText":"","hideIfSubscribed":false,"subscribeBtnText":"","unblockGuideText":"","subscribedTooltip":"","unsubscribeBtnText":"","nonSubscriberTooltip":"","afterSubscriptionText":"","unblockNotificationText":"","blockedSubscriberTooltip":""},"slideSettings":{"text":"We\'d like to show you notifications for the latest news and updates.","fixed":false,"theme":"BOTTOM_BTNS","title":"","details":null,"location":"TOP_CENTER","showIcon":true,"mainColor":"#1165f1","showTitle":false,"acceptBtnText":"Allow","cancelBtnText":"No Thanks","advancedOptions":false},"bannerSettings":{"text":"","fixed":true,"theme":"DEFAULT","details":null,"location":"BOTTOM","showIcon":true,"mainColor":"#333333","acceptBtnText":"Enable","advancedOptions":false},"defaultIconUrl":"https://s3.eu-central-1.amazonaws.com/prod-d5a29e72-54b5-5137-a534-3fd991dbb8ad/201911/blutv-logo.png","selectedPrompt":"SLIDE","autoShowSettings":{"delay":5,"denyWaitTime":0,"promptAfterXVisits":0,"repromptAfterXMinutes":2},"welcomeNotification":{"link":"","title":"DVL hesabına Hoş geldiniz","enabled":true,"message":"Ne iyi ettiniz de geldiniz"}}');
 
-  /**
-   * Service worker kullanarak, notifikasyon gösterir.
-   * 
-   * @param {object} data 
-   * Gösterilecek notifikasyon ile ilgili bilgileri içerir
-   * { title, iconUrl, message, mediaUrl, badgeUrl, targetUrl }
-   * 
-   * @param {object} registration
-   * serviceWorker registration objesi.
-   * 
-   * Geriye promise döndürür
-   */
-
-  function showNotificationWithSw(data, registration) {
-    var title = data.title;
-    var iconUrl = data.iconUrl == 'default_icon' ? appSettings.defaultIconUrl : (data.iconUrl || '').trim();
-    var options = {
-      body: data.message,
-      requireInteraction: true,
-      data: {}
+  function sendOpen(messageId, messageDetails) {
+    var data = {
+      "integrationKey": "BkziFc7ghQKPjZ5x9TovmjY_p_l_JwPewW2_p_l_mn_p_l_xHL3eUnBmZ4HMW28r0lc3T9gT6ueB4WBsIKmRRrSj_p_l_kHNGCexHkReFgqJwy8D8jHmzo_p_l_ivpVzLE0UuNFGT2Bq9QdroCwY",
+      "messageId": messageId,
+      "messageDetails": messageDetails
     };
+    return fetch('https://pushdev.dengage.com/api/web/open', {
+      method: 'POST',
+      // *GET, POST, PUT, DELETE, etc.
+      mode: 'cors',
+      // no-cors, *cors, same-origin
+      cache: 'no-cache',
+      // *default, no-cache, reload, force-cache, only-if-cached
+      credentials: 'omit',
+      // include, *same-origin, omit
+      headers: {
+        'Content-Type': 'text/plain'
+      },
+      redirect: 'follow',
+      // manual, *follow, error
+      referrer: 'no-referrer',
+      // no-referrer, *client
+      body: JSON.stringify(data) // body data type must match "Content-Type" header
 
-    if (data.mediaUrl) {
-      options.image = data.mediaUrl;
-    }
-
-    if (iconUrl) {
-      options.icon = iconUrl;
-    }
-
-    if (data.badgeUrl) {
-      options.badge = data.badgeUrl;
-    }
-
-    if (data.targetUrl) {
-      options.data.targetUrl = data.targetUrl;
-
-      if (data.messageId && data.messageDetails) {
-        options.data.messageId = data.messageId;
-        options.data.messageDetails = data.messageDetails;
-      }
-    }
-
-    return registration.showNotification(title, options);
+    });
   }
+
   /**
    * Direk basit bir notifikasyon gösterir
    * 
@@ -444,7 +426,7 @@
    * { title, iconUrl, message, mediaUrl, badgeUrl, targetUrl }
    */
 
-  function showNotificationSimple(data, registration) {
+  function showNotificationSimple(data) {
     var title = data.title;
     var iconUrl = data.iconUrl == 'default_icon' ? appSettings.defaultIconUrl : (data.iconUrl || '').trim();
     var options = {
@@ -470,6 +452,10 @@
       notif.onclick = function (event) {
         event.notification.close();
         window.open(data.targetUrl);
+
+        if (data.messageId && data.messageDetails) {
+          sendOpen(data.messageId, data.messageDetails);
+        }
       };
     }
   }
@@ -498,9 +484,12 @@
   function onMessageHandler(payload) {
     console.log("[dengage-webpush-sw.js] Received message when client is opened: ", payload);
     var data = payload.data;
-    navigator.serviceWorker.ready.then(function (registration) {
+    /*navigator.serviceWorker.ready
+    .then(registration => {
       showNotificationWithSw(data, registration);
-    }, errorLoggerRejected('serviceWorker.ready failed on onMessageHandler. '));
+    }, errorLoggerRejected('serviceWorker.ready failed on onMessageHandler. '));*/
+
+    showNotificationSimple(data);
   }
 
   window.onMessageHandler = onMessageHandler;
