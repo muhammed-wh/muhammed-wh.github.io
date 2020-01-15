@@ -450,7 +450,11 @@
 
     if (data.targetUrl) {
       notif.onclick = function (event) {
-        event.notification.close();
+        if (event.notification) {
+          console.log('if e girdi');
+          event.notification.close();
+        }
+
         window.open(data.targetUrl);
 
         if (data.messageId && data.messageDetails) {
