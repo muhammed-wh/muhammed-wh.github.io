@@ -74,7 +74,14 @@
     event.notification.close();
 
     if (event.notification.data.targetUrl) {
-      event.waitUntil(self.clients.openWindow(event.notification.data.targetUrl));
+      self.clients.matchAll().then(function (clientList) {
+        console.log(clientList);
+        /*if (clientList.length > 0) {
+          return clientList[0].focus();
+        }*/
+
+        return self.clients.openWindow(event.notification.data.targetUrl);
+      });
     }
   });
 
