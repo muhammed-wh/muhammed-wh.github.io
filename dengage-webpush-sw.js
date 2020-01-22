@@ -54,7 +54,7 @@
       var iconUrl = data.iconUrl == 'default_icon' ? appSettings.defaultIconUrl : (data.iconUrl || '').trim();
       var options = {
         body: data.message,
-        requireInteraction: true,
+        requireInteraction:  false ,
         data: {}
       };
 

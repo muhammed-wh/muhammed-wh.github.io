@@ -436,7 +436,7 @@
     var iconUrl = data.iconUrl == 'default_icon' ? appSettings.defaultIconUrl : (data.iconUrl || '').trim();
     var options = {
       body: data.message,
-      requireInteraction: true,
+      requireInteraction:  false ,
       data: {}
     };
 
@@ -476,7 +476,7 @@
     var iconUrl = data.iconUrl == 'default_icon' ? appSettings.defaultIconUrl : (data.iconUrl || '').trim();
     var options = {
       body: data.message,
-      requireInteraction: true
+      requireInteraction:  false 
     };
 
     if (data.mediaUrl) {
@@ -535,7 +535,7 @@
     var data = payload.data;
     return navigator.serviceWorker.getRegistration().then(function (registration) {
       showNotificationWithSw(data, registration);
-    }, errorLoggerRejected('serviceWorker.ready failed on onMessageHandler. ')); //showNotificationSimple(data);
+    }, errorLoggerRejected('serviceWorker.ready failed on onMessageHandler. '));
   }
 
   window.onMessageHandler = onMessageHandler;
@@ -667,7 +667,8 @@
   }
 
   function sendSubscription() {
-    isSubscriptionSent = true;
+    isSubscriptionSent = true; //TODO: sendSubscription başarısız olursa dengage_subscription_sent set etmemek lazım
+
     sessionStorage.setItem('dengage_subscription_sent', 'true');
     getDeviceId().then(function (deviceId) {
       var data = {
