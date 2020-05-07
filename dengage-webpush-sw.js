@@ -73,7 +73,7 @@
         }
       }
 
-      if (data.actions && data.actions.length) {
+      if (data.actionButtons && data.actionButtons.length) {
         options.actions = [];
         var actions = data.actionButtons;
 
