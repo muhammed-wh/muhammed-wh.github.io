@@ -980,11 +980,12 @@
     localStorage.setItem('dengage_webpush_last_d', new Date().valueOf() + '');
   }
 
-  function sendOpen(messageId, messageDetails) {
+  function sendOpen(messageId, messageDetails, buttonId) {
     var data = {
-      "integrationKey": "BkziFc7ghQKPjZ5x9TovmjY_p_l_JwPewW2_p_l_mn_p_l_xHL3eUnBmZ4HMW28r0lc3T9gT6ueB4WBsIKmRRrSj_p_l_kHNGCexHkReFgqJwy8D8jHmzo_p_l_ivpVzLE0UuNFGT2Bq9QdroCwY",
-      "messageId": messageId,
-      "messageDetails": messageDetails
+      integrationKey: "BkziFc7ghQKPjZ5x9TovmjY_p_l_JwPewW2_p_l_mn_p_l_xHL3eUnBmZ4HMW28r0lc3T9gT6ueB4WBsIKmRRrSj_p_l_kHNGCexHkReFgqJwy8D8jHmzo_p_l_ivpVzLE0UuNFGT2Bq9QdroCwY",
+      messageId: messageId,
+      messageDetails: messageDetails,
+      buttonId: buttonId || ''
     };
     return fetch('https://pushdev.dengage.com/api/web/open', {
       method: 'POST',
@@ -1040,7 +1041,6 @@
     if (data.targetUrl) {
       notif.onclick = function (event) {
         if (event.notification) {
-          console.log('if e girdi');
           event.notification.close();
         }
 

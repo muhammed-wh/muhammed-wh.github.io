@@ -3,11 +3,12 @@
 
     var appSettings = JSON.parse('{"name":"muhammed-wh.github.io","siteUrl":"https://muhammed-wh.github.io","autoShow":true,"bellSettings":{"size":"MEDIUM","location":"RIGHT","mainColor":"#1165f1","leftOffset":0,"accentColor":"#333333","dialogTitle":"","rightOffset":0,"bottomOffset":0,"advancedOptions":false,"unsubscribeText":"","hideIfSubscribed":false,"subscribeBtnText":"","unblockGuideText":"","subscribedTooltip":"","unsubscribeBtnText":"","nonSubscriberTooltip":"","afterSubscriptionText":"","unblockNotificationText":"","blockedSubscriberTooltip":""},"slideSettings":{"text":"We\'d like to show you notifications for the latest news and updates.","fixed":false,"theme":"BOTTOM_BTNS","title":"","details":null,"location":"TOP_CENTER","showIcon":true,"mainColor":"#1165f1","showTitle":false,"acceptBtnText":"Allow","cancelBtnText":"No Thanks","advancedOptions":false},"bannerSettings":{"text":"","fixed":true,"theme":"DEFAULT","details":null,"location":"BOTTOM","showIcon":true,"mainColor":"#333333","acceptBtnText":"Enable","advancedOptions":false},"defaultIconUrl":"https://s3.eu-central-1.amazonaws.com/prod-d5a29e72-54b5-5137-a534-3fd991dbb8ad/201911/blutv-logo.png","selectedPrompt":"SLIDE","autoShowSettings":{"delay":5,"denyWaitTime":0,"promptAfterXVisits":0,"repromptAfterXMinutes":2},"welcomeNotification":{"link":"","title":"DVL hesabına Hoş geldiniz","enabled":true,"message":"Ne iyi ettiniz de geldiniz"}}');
 
-    function sendOpen(messageId, messageDetails) {
+    function sendOpen(messageId, messageDetails, buttonId) {
       var data = {
-        "integrationKey": "BkziFc7ghQKPjZ5x9TovmjY_p_l_JwPewW2_p_l_mn_p_l_xHL3eUnBmZ4HMW28r0lc3T9gT6ueB4WBsIKmRRrSj_p_l_kHNGCexHkReFgqJwy8D8jHmzo_p_l_ivpVzLE0UuNFGT2Bq9QdroCwY",
-        "messageId": messageId,
-        "messageDetails": messageDetails
+        integrationKey: "BkziFc7ghQKPjZ5x9TovmjY_p_l_JwPewW2_p_l_mn_p_l_xHL3eUnBmZ4HMW28r0lc3T9gT6ueB4WBsIKmRRrSj_p_l_kHNGCexHkReFgqJwy8D8jHmzo_p_l_ivpVzLE0UuNFGT2Bq9QdroCwY",
+        messageId: messageId,
+        messageDetails: messageDetails,
+        buttonId: buttonId || ''
       };
       return fetch('https://pushdev.dengage.com/api/web/open', {
         method: 'POST',
@@ -49,7 +50,11 @@
       var options = {
         body: data.message,
         requireInteraction:  false ,
-        data: {}
+        data: {
+          targetUrl: data.targetUrl,
+          messageId: data.messageId,
+          messageDetails: data.messageDetails
+        }
       };
 
       if (data.mediaUrl) {
@@ -62,15 +67,6 @@
 
       if (data.badgeUrl) {
         options.badge = data.badgeUrl;
-      }
-
-      if (data.targetUrl) {
-        options.data.targetUrl = data.targetUrl;
-
-        if (data.messageId != null && data.messageDetails != null) {
-          options.data.messageId = data.messageId;
-          options.data.messageDetails = data.messageDetails;
-        }
       }
 
       if (data.actionButtons && data.actionButtons.length) {
@@ -159,14 +155,30 @@
       console.log('notificationclick');
       console.log(event.notification);
       event.notification.close();
+      var windowOpenPromise = Promise.resolve();
+      var sendOpenPromise = Promise.resolve();
 
-      if (event.notification.data.targetUrl) {
-        event.waitUntil(clients.openWindow(event.notification.data.targetUrl).then(function () {
-          if (event.notification.data.messageId != null) {
-            return sendOpen(event.notification.data.messageId, event.notification.data.messageDetails);
-          }
-        }));
+      if (event.action && self.notificationActions && self.notificationActions.hasOwnProperty(event.action)) {
+        var action = event.notification.data.actionButtons.find(function (b) {
+          return b.id == event.action;
+        });
+
+        if (action.targetUrl) {
+          windowOpenPromise = clients.openWindow(action.targetUrl);
+        }
+
+        if (event.notification.data.messageId != null) {
+          sendOpenPromise = sendOpen(event.notification.data.messageId, event.notification.data.messageDetails, action.id);
+        }
+      } else if (event.notification.data.targetUrl) {
+        windowOpenPromise = clients.openWindow(event.notification.data.targetUrl);
+
+        if (event.notification.data.messageId != null) {
+          sendOpenPromise = sendOpen(event.notification.data.messageId, event.notification.data.messageDetails);
+        }
       }
+
+      event.waitUntil(Promise.all([windowOpenPromise, sendOpenPromise]));
     });
     /*self.addEventListener('pushsubscriptionchange', function(event) {
       //https://medium.com/@madridserginho/how-to-handle-webpush-api-pushsubscriptionchange-event-in-modern-browsers-6e47840d756f
