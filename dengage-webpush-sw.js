@@ -157,12 +157,11 @@
       event.notification.close();
       var windowOpenPromise = Promise.resolve();
       var sendOpenPromise = Promise.resolve();
+      var action = (event.notification.data.actionButtons || []).find(function (b) {
+        return b.id == event.action;
+      });
 
-      if (event.action && self.notificationActions && self.notificationActions.hasOwnProperty(event.action)) {
-        var action = event.notification.data.actionButtons.find(function (b) {
-          return b.id == event.action;
-        });
-
+      if (event.action && action) {
         if (action.targetUrl) {
           windowOpenPromise = clients.openWindow(action.targetUrl);
         }
