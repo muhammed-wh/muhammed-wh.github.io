@@ -1219,7 +1219,7 @@
     });
   }
   function sendDeviceEvent(table, data) {
-    return subscriptionManager.getDeviceId().then(function (deviceId) {
+    return getDeviceId().then(function (deviceId) {
       data.session_id = getSessionId();
       return sendEvent(table, deviceId, data);
     });
