@@ -613,7 +613,7 @@
   var webSubscription = null;
   var params = {
     swUrl: '/dengage-webpush-sw.js',
-    swScope: ''
+    swScope: '/'
   };
 
   function generateToken(subscription) {
@@ -661,7 +661,7 @@
       var currentPermission = Notification.permission;
 
       if (currentPermission === 'granted') {
-        return navigator.serviceWorker.register(params.swUrl, {
+        return navigator.serviceWorker.register(params.swUrl + '?account_id=10&app_guid=4a51eec2-df65-164d-a6b6-07afa53a83f0', {
           scope: params.swScope,
           updateViaCache: 'none'
         }).then(function () {
