@@ -1,7 +1,7 @@
 // filesToCache and staticCacheName variables inside imported js
 importScripts('sw-cachefiles.js?v=1cc881e27e1');
 self.addEventListener('install', event => {
-  //console.log("cache name"+staticCacheName);
+  console.log("cache name"+staticCacheName);
   //console.log(filesToCache);
   //console.log('Attempting to install service worker and cache static assets');
   self.skipWaiting();
@@ -14,7 +14,7 @@ self.addEventListener('install', event => {
 });
 // removing old caches
 self.addEventListener('activate', function(event) {
-  //console.log("activate event");
+  console.log("activate event");
   event.waitUntil(
     caches.keys().then(function(cacheNames) {
       return Promise.all(
@@ -58,4 +58,4 @@ self.addEventListener('fetch', function(event) {
 });
 
 
-importScripts("https://pdev.dengage.com/p/push/10/7c744ecc-e7f8-e219-6a07-f579c7aeafbe/dengage_sw.js");
+importScripts("/dengage_sw.js");
