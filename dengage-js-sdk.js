@@ -730,7 +730,11 @@
                     console.log(registration.active, 'active');
                     console.log(registration.installing, 'installing');
                     console.log(registration.waiting, 'waiting');
-                    return refreshSubscription(registration)
+                    return new Promise((resolve, reject) => {
+                        setTimeout(() => {
+                            resolve(refreshSubscription(registration));
+                        }, 5000);
+                    });
                     /*return navigator.serviceWorker.ready.then((function(registration) {
                         return refreshSubscription(registration)
                     }
