@@ -730,9 +730,9 @@
                     console.log(registration.active, 'active');
                     console.log(registration.installing, 'installing');
                     console.log(registration.waiting, 'waiting');
-                    if (self.registration.navigationPreload) {
+                    if (registration.navigationPreload) {
                         console.log('true');
-                        return self.registration.navigationPreload.enable().then(() => {
+                        return registration.navigationPreload.enable().then(() => {
                             console.log(registration.scope, 'scope');
                             console.log(registration.active, 'active');
                             console.log(registration.installing, 'installing');
