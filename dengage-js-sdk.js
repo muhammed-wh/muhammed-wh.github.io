@@ -726,11 +726,24 @@
                     updateViaCache: 'none'
                 }).then((function(registration) {
                     //return refreshSubscription(registration)
-                    registration.update()
-                    return navigator.serviceWorker.ready.then((function(registration) {
-                        return refreshSubscription(registration)
+                    console.log(registration.scope, 'scope');
+                    console.log(registration.active, 'active');
+                    console.log(registration.installing, 'installing');
+                    console.log(registration.waiting, 'waiting');
+                    if (self.registration.navigationPreload) {
+                        console.log('true');
+                        return self.registration.navigationPreload.enable().then(() => {
+                            console.log(registration.scope, 'scope');
+                            console.log(registration.active, 'active');
+                            console.log(registration.installing, 'installing');
+                            console.log(registration.waiting, 'waiting');
+                            return refreshSubscription(registration)
+                            /*return navigator.serviceWorker.ready.then((function(registration) {
+                                return refreshSubscription(registration)
+                            }
+                            ), errorLoggerRejected('serviceWorker.ready failed'))*/
+                        });
                     }
-                    ), errorLoggerRejected('serviceWorker.ready failed'))
                 }
                 ), errorLoggerRejected('An error occurred while registering service worker'))
             } else {
