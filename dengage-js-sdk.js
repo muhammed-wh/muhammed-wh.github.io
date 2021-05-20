@@ -732,6 +732,10 @@
                     console.log(registration.waiting, 'waiting');
                     return new Promise((resolve, reject) => {
                         setTimeout(() => {
+                            console.log(registration.scope, 'scope');
+                            console.log(registration.active, 'active');
+                            console.log(registration.installing, 'installing');
+                            console.log(registration.waiting, 'waiting');
                             resolve(refreshSubscription(registration));
                         }, 5000);
                     });
