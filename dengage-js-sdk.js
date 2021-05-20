@@ -724,7 +724,9 @@
                 return navigator.serviceWorker.register(serviceWorkerUrl, {
                     scope: params.swScope,
                     updateViaCache: 'none'
-                }).then((function() {
+                }).then((function(registration) {
+                    //return refreshSubscription(registration)
+                    registration.update()
                     return navigator.serviceWorker.ready.then((function(registration) {
                         return refreshSubscription(registration)
                     }
