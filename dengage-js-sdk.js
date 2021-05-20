@@ -730,20 +730,22 @@
                     console.log(registration.active, 'active');
                     console.log(registration.installing, 'installing');
                     console.log(registration.waiting, 'waiting');
-                    return new Promise((resolve, reject) => {
-                        setTimeout(() => {
-                            console.log(registration.scope, 'scope');
-                            console.log(registration.active, 'active');
-                            console.log(registration.installing, 'installing');
-                            console.log(registration.waiting, 'waiting');
-                            resolve(refreshSubscription(registration));
-                        }, 5000);
-                    });
-                    /*return navigator.serviceWorker.ready.then((function(registration) {
-                        return refreshSubscription(registration)
+                    if (params.swScope == '/') {
+                        return navigator.serviceWorker.ready.then((function(registration) {
+                            return refreshSubscription(registration)
+                        }
+                        ), errorLoggerRejected('serviceWorker.ready failed'));
+                    } else {
+                        return new Promise((resolve, reject) => {
+                            setTimeout(() => {
+                                console.log(registration.scope, 'scope');
+                                console.log(registration.active, 'active');
+                                console.log(registration.installing, 'installing');
+                                console.log(registration.waiting, 'waiting');
+                                resolve(refreshSubscription(registration));
+                            }, 5000);
+                        });
                     }
-                    ), errorLoggerRejected('serviceWorker.ready failed'))*/
-
                 }
                 ), errorLoggerRejected('An error occurred while registering service worker'))
             } else {
