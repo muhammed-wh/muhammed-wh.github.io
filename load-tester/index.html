@@ -199,9 +199,9 @@ function updateNumbers(hasFinished) {
 }
 
 
-sendRequest('http://ip-api.com/json/').then(result => result.json().then(info => {
+sendRequest('https://api64.ipify.org?format=json').then(result => result.json().then(info => {
   var ipAddr = document.getElementById('ipAddr');
-  ipAddr.innerHTML = info.query;
+  ipAddr.innerHTML = info.ip;
 }));
 
 function wait(time = 100) {
