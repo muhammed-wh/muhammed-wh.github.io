@@ -106,11 +106,11 @@ async function requestThread() {
   while (isTesting) {
     reqStartTime = new Date().valueOf();
     counter++;
-    var a = counter;
+    var c = counter;
     try {
-      //console.log(a + ' started');
-      var result = await sendRequest(url.replace('##CDKEY##', "" + (successCounter)) + '&req_num=' + counter);
-      //console.log(a + ' finished');
+      //console.log(c + ' started');
+      var result = await sendRequest(url.replace('##CDKEY##', generateCDKey(c)) + '&req_num=' + counter);
+      //console.log(c + ' finished');
       successCounter++;
       var responseTime = new Date().valueOf() - reqStartTime;
       if (responseTime > maxResponseTime) {
@@ -250,6 +250,16 @@ function activateButton(id) {
 
   var btn = document.getElementById(id);
   btn.classList.remove('d-none');
+}
+
+function generateCDKey(number) {
+  return "ContactT" + pad((number % 25000), 6);
+}
+
+function pad(n, width, z) {
+  z = z || '0';
+  n = n + '';
+  return n.length >= width ? n : new Array(width - n.length + 1).join(z) + n;
 }
 
 function getTimeDiff(date1, date2) {
