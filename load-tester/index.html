@@ -252,7 +252,9 @@ function activateButton(id) {
   btn.classList.remove('d-none');
 }
 
+var offset = getRandomInt(1, 25000);
 function generateCDKey(number) {
+  number = offset + number;
   return "ContactT" + pad((number % 25000), 6);
 }
 
@@ -262,17 +264,10 @@ function pad(n, width, z) {
   return n.length >= width ? n : new Array(width - n.length + 1).join(z) + n;
 }
 
-function getTimeDiff(date1, date2) {
-  var diff = date2.getTime() - date1.getTime();
-
-  var msec = diff;
-  var hh = Math.floor(msec / 1000 / 60 / 60);
-  msec -= hh * 1000 * 60 * 60;
-  var mm = Math.floor(msec / 1000 / 60);
-  msec -= mm * 1000 * 60;
-  var ss = Math.floor(msec / 1000);
-  msec -= ss * 1000;
-  return hh + ":" + mm + ":" + ss;
+function getRandomInt(min, max) {
+    min = Math.ceil(min);
+    max = Math.floor(max);
+    return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 </script>
   </body>
