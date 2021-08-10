@@ -13,15 +13,21 @@
       <meta name=robots content=noindex,follow>
       <link href="https://fonts.googleapis.com/css?family=Roboto+Slab" rel=stylesheet type=text/css>
       <link href="https://fonts.googleapis.com/css?family=Arimo" rel=stylesheet type=text/css>
-      <link href=/static/css/app.6b036bcb1cd76938be18af4659e995dd.css rel=stylesheet>
 
-<script>
+    <script>
       var dengage_sdk_enabled = false;
       var segmentify_sdk_enabled = false;
       var webinstats_sdk_enabled = false;
       var dengage_webpush_type = 'native';
       var dengage_connected_env = 'Development';
-</script>
+
+      window.Segmentify = window.Segmentify || function () {
+          (window.Segmentify.q = window.Segmentify.q || []).push(arguments);
+      };
+      window.dengage = window.dengage || function() {
+        (window.dengage.q = window.dengage.q || []).push(arguments)
+      }
+    </script>
 
 <!-- Google Tag Manager -->
 <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
@@ -29,10 +35,11 @@ new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
 j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
 })(window,document,'script','dataLayer','GTM-NWKN9KJ');</script>
+<!-- GTM-NWKN9KJ should be changed -->
 <!-- End Google Tag Manager -->
-
+      
 </head>
-
+      
 <body>
 <!-- Google Tag Manager (noscript) -->
 <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-NWKN9KJ" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
